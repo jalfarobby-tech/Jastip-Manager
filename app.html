@@ -502,6 +502,19 @@ main .list:empty{display:none}
 .top .icon-btn{color:var(--ink)}
 .top .icon-btn{width:42px;height:42px}.top .icon-btn svg{width:22px;height:22px}
 body.tripbusy main{opacity:.45;pointer-events:none;transition:opacity .15s}
+
+.chk.part{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
+.srow.topup{box-shadow:inset 4px 0 0 var(--amber)}
+/* kartu login selalu terang: teks harus gelap di mode gelap juga */
+.auth-card{color-scheme:light;color:#0b1030;--ink:#0b1030;--muted:#586080;--rule:#e1e4ef;--rule-strong:#aab3cb;--blue:#1b2a9a;--blue-soft:#e6e9fb;--red:#cf2f29;--green:#0f7a3d;--sunken:#eef0f8;--surface:#fbfbfe}
+.auth-card h1,.auth-card .field>span,.auth-card label{color:#0b1030}
+.auth-card input{color:#0b1030}.auth-card input::placeholder{color:#8a92ad}
+.auth-card .btn.text{color:#1b2a9a}
+.auth-card .btn:not(.primary):not(.text){background:#fff;color:#0b1030;border-color:#aab3cb}
+
+:root{--gold:#f0bf2a}
+.auth-card{--blue-ink:#ffffff}
+.auth-card .btn.primary{color:#fff}
 </style>
 </head>
 <body>
@@ -1176,6 +1189,9 @@ var ICO={
 };
 function ico(n){return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+ICO[n]+'</svg>'}
 function logo(n){return '<span class="logo" style="width:'+n+'px;height:'+n+'px" aria-hidden="true"><svg viewBox="0 0 512 512"><path d="M176 196c0-44 36-80 80-80s80 36 80 80" fill="none" stroke="#ffe14d" stroke-width="30" stroke-linecap="round"/><path d="M128 196h256l-20 218a30 30 0 0 1-30 28H178a30 30 0 0 1-30-28z" fill="#fff"/><path d="M204 308l38 38 72-80" fill="none" stroke="#2740d8" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'}
+/* Barang yang sudah dicentang tapi pesanannya bertambah: sisanya harus dibeli lagi */
+function topUp(C,i){return i.status==='dibeli'&&C.per[i.id].wait>0}
+function pending(C,i){return C.per[i.id].ordered>0&&(i.status==='belum'||topUp(C,i))}
 function st(cls,text){return '<span class="st '+cls+'">'+text+'</span>'}
 function stItem(i,p){
   if(i.status==='dibeli')return st('ok','Dibeli');
@@ -1197,7 +1213,7 @@ function viewHeader(){
 function viewNav(C){
   var tabs=allowedTabs();
   if(tabs.length<2)return '<span></span>';
-  var belum=C?C.items.filter(function(i){return C.per[i.id].ordered>0&&i.status==='belum'}).length:0;
+  var belum=C?C.items.filter(function(i){return pending(C,i)}).length:0;
   return '<nav class="tabs" aria-label="Menu utama"><div class="in">'+tabs.map(function(k){
     return '<button data-act="tab" data-tab="'+k+'" aria-current="'+(UI.tab===k)+'">'+ico(k)+'<span>'+TAB_LABEL[k]+'</span>'+(k==='belanja'&&belum?'<span class="dot">'+belum+'</span>':'')+'</button>';
   }).join('')+'<button class="deskout" data-oa="logout">'+ico('logout')+'<span>Keluar</span></button></div></nav>';
@@ -1227,23 +1243,24 @@ function viewHome(C){
   var t=C.t,T=C.tot,owner=S.role==='owner';
   var days=t.deadline?Math.ceil((new Date(t.deadline+'T23:59:59')-Date.now())/864e5):null;
   var rows=[],byToko={},nBelum=0;
-  C.items.forEach(function(i){if(C.per[i.id].ordered>0&&i.status==='belum'){var k=i.toko||'Tanpa toko';byToko[k]=(byToko[k]||0)+1;nBelum++}});
+  C.items.forEach(function(i){if(pending(C,i)){var k=i.toko||'Tanpa toko';byToko[k]=(byToko[k]||0)+1;nBelum++}});
   var nLines=S.lines.filter(function(l){return l.trip===t.id&&!l.batal}).length;
   var piut=C.custs.filter(function(c){return c.sisa>0&&c.tagihan>0}),tagih=C.custs.reduce(function(a,c){return a+Math.max(0,c.sisa)},0);
   var siapList=C.custs.filter(function(c){return c.stage==='siap'});
   var sentence=!C.items.length?'Mulai dengan menempelkan daftar barang dari story.':!nLines?'Belum ada pesanan. Impor chat WhatsApp untuk mengisinya.':nBelum>0?'Masih ada '+nBelum+' barang yang belum dibeli.':(siapList.length&&!APP.noDeliv)?'Semua barang sudah dibeli. '+siapList.length+' pelanggan siap dikabari.':piut.length?'Semua barang sudah dibeli. '+piut.length+' pelanggan belum lunas.':'Semua beres. Tidak ada yang tertunda.';
-  var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&i.status!=='belum'}).length,pct=T.codes?Math.round(doneN/T.codes*100):0;
+  var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&!pending(C,i)}).length,pct=T.codes?Math.round(doneN/T.codes*100):0;
   var dl=t.deadline?'PO tutup '+new Date(t.deadline+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short'})+(days==null?'':days<0?', sudah lewat':days===0?', hari ini':', '+days+' hari lagi'):'';
   var meta=(owner&&t.kurs>0?'Kurs 1 '+esc(t.mata)+' = Rp'+nf(t.kurs):'')+(owner&&t.kurs>0&&dl?' · ':'')+(dl?esc(dl):'');
   var rr=owner&&t.kurs>0?RATE[String(t.mata||'').toUpperCase()]:null;
   if(rr&&rr.rate>t.kurs*1.01)rows.push('<button class="row" data-act="trip-edit"><span class="lead-n warn">!</span><div class="grow"><div class="t">Kurs trip di bawah kurs pasar</div><div class="sub">Kurs trip Rp'+nf(t.kurs)+', kurs pasar hari ini Rp'+nf(rr.rate)+'. Harga jual bisa terlalu murah. Ketuk untuk memperbarui.</div></div><span class="chev">'+ico('chev')+'</span></button>');
   if(days!=null&&days<=3)rows.push(todoRow(days<0?'!':days,days<0?'bad':'warn',days<0?'Batas PO sudah lewat':(days===0?'PO tutup hari ini':'Hari lagi PO ditutup'),'Tutup PO: '+esc(t.deadline),null));
-  if(nBelum)rows.push(todoRow(nBelum,'bad','Barang belum dibeli',Object.keys(byToko).map(function(k){return esc(k)+' ('+byToko[k]+')'}).join(', '),'belanja'));
+  var tops=C.items.filter(function(i){return topUp(C,i)});
+  if(nBelum)rows.push(todoRow(nBelum,'bad','Barang belum dibeli',Object.keys(byToko).map(function(k){return esc(k)+' ('+byToko[k]+')'}).join(', ')+(tops.length?'. Beli lagi: '+tops.map(function(i){return esc(i.kode)+' +'+C.per[i.id].wait}).join(', '):''),'belanja'));
   var habis=C.items.filter(function(i){return i.status==='habis'&&C.per[i.id].ordered>0});
   if(habis.length)rows.push(todoRow(C.custs.filter(function(c){return c.habis.length}).length,'warn','Pelanggan perlu dikabari, barang habis',habis.map(function(i){return esc(i.kode)+' '+esc(i.nama)}).join(', '),'tagihan'));
   var codes={};C.unreg.forEach(function(l){codes[l.kode]=1});var uc=Object.keys(codes);
   if(uc.length)rows.push(todoRow(uc.length,'warn','Kode belum ada di daftar barang',uc.map(esc).join(', ')+'. Tambahkan barangnya, pesanan tersambung otomatis.','barang'));
-  var waits=C.items.filter(function(i){return C.per[i.id].wait>0&&i.status!=='habis'});
+  var waits=C.items.filter(function(i){return C.per[i.id].wait>0&&i.status!=='habis'&&!topUp(C,i)});
   if(waits.length)rows.push(todoRow(waits.length,'warn','Stok kurang untuk sebagian pesanan',waits.map(function(i){return esc(i.kode)+': '+C.per[i.id].wait+' pcs tidak kebagian'}).join(', '),'tagihan'));
   var left=C.items.filter(function(i){return C.per[i.id].leftover>0});
   if(left.length)rows.push(todoRow(left.length,'ok','Stok sisa dari belanjaan',left.map(function(i){return esc(i.kode)+': '+C.per[i.id].leftover+' pcs'}).join(', '),null));
@@ -1308,7 +1325,7 @@ function isWaiting(C,l,it){
 /* ---------- Belanja ---------- */
 function viewBelanja(C){
   var f=UI.filter,T=C.tot;
-  var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&i.status!=='belum'}).length;
+  var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&!pending(C,i)}).length;
   var pct=T.codes?Math.round(doneN/T.codes*100):0,prev=UI.prevPct==null?0:UI.prevPct;UI.prevPct=pct;
   var h=pageHd('Belanja',S.role!=='pembeli'||true?'<button class="btn sm" data-act="copy-shop">Salin daftar</button>':'')+'<p class="lead">Centang kalau sudah dibeli. Ketuk barisnya untuk ubah jumlah atau harga.</p>'+
     '<div class="stack" style="gap:8px"><div style="display:flex;justify-content:space-between;gap:10px"><b>'+doneN+' dari '+T.codes+' barang selesai</b><span class="muted num">'+pct+'%</span></div><div class="bar"><i style="--from:'+prev+'%;--to:'+pct+'%;width:'+pct+'%"></i></div></div>'+
@@ -1318,8 +1335,8 @@ function viewBelanja(C){
   C.items.forEach(function(i){if(C.per[i.id].ordered<=0)return;var k=i.toko||'Tanpa toko';(groups[k]=groups[k]||[]).push(i)});
   var keys=Object.keys(groups).sort(),any=false,gh='';
   keys.forEach(function(k){
-    var arr=groups[k].sort(function(a,b){return ((a.status!=='belum')-(b.status!=='belum'))||(a.kode<b.kode?-1:1)}),done=arr.filter(function(i){return i.status!=='belum'}).length;
-    var vis=arr.filter(function(i){return f==='semua'||(f==='belum'?i.status==='belum':i.status!=='belum')});
+    var arr=groups[k].sort(function(a,b){return ((!pending(C,a))-(!pending(C,b)))||(a.kode<b.kode?-1:1)}),done=arr.filter(function(i){return !pending(C,i)}).length;
+    var vis=arr.filter(function(i){return f==='semua'||(f==='belum'?pending(C,i):!pending(C,i))});
     if(!vis.length)return;any=true;
     gh+='<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num">'+done+' / '+arr.length+'</span></div><div class="list">'+vis.map(function(i){return shopRow(C,i)}).join('')+'</div></div>';
   });
@@ -1328,13 +1345,13 @@ function viewBelanja(C){
   return h;
 }
 function shopRow(C,i){
-  var p=C.per[i.id],t=C.t,qty=i.status==='dibeli'?i.boughtQty:p.alloc;
+  var p=C.per[i.id],t=C.t,tu=topUp(C,i),qty=tu?p.wait:(i.status==='dibeli'?i.boughtQty:p.alloc);
   var who=S.role==='pembeli'?'':p.lines.map(function(l){var c=S.customers.find(function(x){return x.id===l.cust});return esc(c?c.nama:'?')+' ×'+l.qty}).join(' · ');
-  var meta=i.status==='dibeli'?st('ok','Dibeli · '+esc(t.mata)+' '+nf(i.aktual==null?i.harga:i.aktual)):i.status==='habis'?st('bad','Habis'):(p.wait>0?st('warn',p.wait+' pcs tidak kebagian'):'');
+  var meta=tu?st('warn','Pesanan bertambah: beli lagi '+p.wait+' pcs (sudah dibeli '+i.boughtQty+')'):i.status==='dibeli'?st('ok','Dibeli · '+esc(t.mata)+' '+nf(i.aktual==null?i.harga:i.aktual)):i.status==='habis'?st('bad','Habis'):(p.wait>0?st('warn',p.wait+' pcs tidak kebagian'):'');
   var sold=i.status==='habis';
-  return '<div class="srow'+(i.status==='dibeli'?' done':'')+(UI.just===i.id?' flash':'')+'"><button class="main" data-act="shop-open" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div style="min-width:0"><div class="t" style="font-weight:600;overflow-wrap:anywhere">'+esc(i.nama)+'</div><div class="sub small muted" style="overflow-wrap:anywhere">'+who+'</div>'+(meta?'<div style="margin-top:2px">'+meta+'</div>':'')+'</div>'+
-    '<div class="qty">'+(sold?'':'<b>'+qty+'</b><span>pcs</span>')+'</div></button>'+
-    '<div class="chkcell"><button class="chk'+(sold?' sold':'')+(UI.just===i.id&&i.status==='dibeli'?' pop':'')+'" data-act="toggle-buy" data-id="'+i.id+'" aria-pressed="'+(i.status==='dibeli')+'" aria-label="'+(i.status==='belum'?'Tandai sudah dibeli':'Kembalikan ke belum dibeli')+' '+esc(i.nama)+'">'+(sold?ico('x'):ico('check'))+'</button></div></div>';
+  return '<div class="srow'+(tu?' topup':(i.status==='dibeli'?' done':''))+(UI.just===i.id?' flash':'')+'"><button class="main" data-act="shop-open" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div style="min-width:0"><div class="t" style="font-weight:600;overflow-wrap:anywhere">'+esc(i.nama)+'</div><div class="sub small muted" style="overflow-wrap:anywhere">'+who+'</div>'+(meta?'<div style="margin-top:2px">'+meta+'</div>':'')+'</div>'+
+    '<div class="qty">'+(sold?'':'<b>'+(tu?'+':'')+qty+'</b><span>pcs</span>')+'</div></button>'+
+    '<div class="chkcell"><button class="chk'+(sold?' sold':'')+(tu?' part':'')+(UI.just===i.id&&i.status==='dibeli'?' pop':'')+'" data-act="toggle-buy" data-id="'+i.id+'" aria-pressed="'+(i.status==='dibeli'&&!tu)+'" aria-label="'+(tu?'Tandai kekurangan sudah dibeli':i.status==='belum'?'Tandai sudah dibeli':'Kembalikan ke belum dibeli')+' '+esc(i.nama)+'">'+(sold?ico('x'):tu?ico('plus'):ico('check'))+'</button></div></div>';
 }
 
 /* ---------- Tagihan ---------- */
@@ -1416,11 +1433,11 @@ function modalImport(C){
 }
 function modalShop(C){
   var i=S.items.find(function(x){return x.id===UI.modal.id});if(!i)return '';
-  var p=C.per[i.id],t=C.t,qty=i.status==='dibeli'?i.boughtQty:p.alloc,price=i.aktual!=null?i.aktual:i.harga;
+  var p=C.per[i.id],t=C.t,tu=topUp(C,i),qty=tu?p.ordered:(i.status==='dibeli'?i.boughtQty:p.alloc),price=i.aktual!=null?i.aktual:i.harga;
   var who=p.lines.map(function(l){var c=S.customers.find(function(x){return x.id===l.cust});return '<div class="row" style="min-height:48px;padding:8px 14px"><div class="grow">'+esc(c?c.nama:'?')+'</div><b class="num">×'+l.qty+'</b></div>'}).join('');
   return sheet(i.kode+' · '+i.nama,'<div class="sheet-bd">'+
     '<div class="sec"><div class="label">Pemesan ('+p.ordered+' pcs)</div><div class="list">'+who+'</div></div>'+
-    (p.wait>0?'<div class="hint">'+p.wait+' pcs pesanan tidak kebagian karena stok terbatas ('+(i.stok===''?'-':i.stok)+' pcs).</div>':'')+
+    (tu?'<div class="hint">Pesanan bertambah. Sudah dibeli '+i.boughtQty+' pcs, pesanan sekarang '+p.ordered+' pcs, jadi masih kurang '+p.wait+' pcs. Jumlah di bawah sudah diisi total yang harus dibeli.</div>':(p.wait>0?'<div class="hint">'+p.wait+' pcs pesanan tidak kebagian karena stok terbatas ('+(i.stok===''?'-':i.stok)+' pcs).</div>':''))+
     '<div class="field"><span>Jumlah yang dibeli</span>'+stepper('bq-'+i.id,qty,0)+'</div>'+
     '<label class="field"><span>Harga di toko ('+esc(t.mata)+' per pcs)</span><input id="ba-'+i.id+'" type="number" inputmode="decimal" min="0" step="any" value="'+price+'"><small>Harga di daftar: '+esc(t.mata)+' '+nf(i.harga)+'. Ubah kalau harga di toko berbeda.</small></label></div>'+
     '<div class="sheet-ft">'+(i.status!=='belum'?'<button class="btn" data-act="unbuy" data-id="'+i.id+'">Kembalikan ke belum dibeli</button>':'<button class="btn danger" data-act="soldout" data-id="'+i.id+'">Tandai habis</button>')+'<button class="btn primary" data-act="buy" data-id="'+i.id+'">'+(i.status==='dibeli'?'Simpan perubahan':'Sudah dibeli')+'</button></div>');
@@ -1633,7 +1650,8 @@ document.addEventListener('click',function(e){
     case 'toggle-buy':
       var it0=S.items.find(function(x){return x.id===id}),prev={s:it0.status,q:it0.boughtQty,a:it0.aktual};
       function undo(){it0.status=prev.s;if(prev.q==null)delete it0.boughtQty;else it0.boughtQty=prev.q;if(prev.a==null)delete it0.aktual;else it0.aktual=prev.a;UI.just=id;save();render()}
-      if(it0.status==='belum'){
+      if(topUp(C,it0)){var pw0=C.per[id].wait;buyItem(C,id,C.per[id].ordered,it0.aktual!=null?it0.aktual:it0.harga);UI.just=id;save();render();buzz();toast(it0.kode+': kekurangan '+pw0+' pcs ditandai dibeli',undo)}
+      else if(it0.status==='belum'){
         if(C.per[id].alloc>0){buyItem(C,id,C.per[id].alloc,it0.harga);UI.just=id;save();render();buzz();toast(it0.kode+' ditandai dibeli',undo)}
         else{UI.modal={type:'shop',id:id};render()}
       }else{it0.status='belum';delete it0.boughtQty;delete it0.aktual;UI.just=id;save();render();toast(it0.kode+' dikembalikan ke belum dibeli',undo)}
