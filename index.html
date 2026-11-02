@@ -11,13 +11,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <script>
-/* Tautan reset password dari email dan pengguna yang sudah login langsung ke aplikasi. */
+/* Hanya tautan reset password dari email yang langsung diteruskan ke aplikasi. Halaman depan selalu tampil. */
 (function(){try{
  var h=location.hash||'';
  if(/type=recovery|access_token=|error_description=/.test(h)){location.replace('app.html'+h);return}
- if(location.search.indexOf('depan')>=0)return;
- for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k)&&localStorage.getItem(k)){location.replace('app.html');return}}
-}catch(e){}})();
+ }catch(e){}})();
 </script>
 <title>Jastip Manager: Aplikasi Pencatat Jastip, Impor Chat WhatsApp, Nota, dan Untung</title>
 <style>
