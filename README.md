@@ -1,7 +1,7 @@
 # Jastip Manager
 
 Aplikasi pencatat jastip: barang, pesanan (termasuk impor chat WhatsApp), daftar belanja, tagihan, dan untung.
-Satu file `index.html`, tanpa proses build. Data disimpan di Supabase, login dengan email.
+Dua halaman, tanpa proses build: `index.html` (halaman depan sebelum login) dan `app.html` (aplikasinya). Data disimpan di Supabase, login dengan email.
 
 ## Peran
 - **Pemilik**: melihat semua, termasuk kurs, modal, dan untung. Mengelola anggota.
@@ -12,11 +12,11 @@ Satu file `index.html`, tanpa proses build. Data disimpan di Supabase, login den
 
 ### 1. Database
 Di Supabase buka **SQL Editor > New query**. Kalau `schema.sql` lama sudah pernah dijalankan, cukup jalankan
-`database/tambahan-import-log.sql`. Kalau belum, jalankan `database/schema-lengkap.sql` (sudah termasuk tambahan itu).
+`database/tambahan-import-log.sql` lalu `database/tambahan-pengiriman.sql` (status pengiriman dan info pembayaran). Kalau belum, jalankan `database/schema-lengkap.sql` (sudah termasuk tambahan itu).
 
 ### 2. GitHub Pages
 1. Buat repo baru (public), misalnya `jastip`.
-2. Upload `index.html`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png` ke root repo.
+2. Upload `index.html`, `app.html`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png` ke root repo.
 3. **Settings > Pages > Build and deployment > Source: Deploy from a branch**, pilih `main` dan `/ (root)`, lalu Save.
 4. Tunggu sekitar satu menit. Alamatnya `https://USERNAME.github.io/jastip/`.
 
@@ -31,7 +31,7 @@ Di Supabase buka **SQL Editor > New query**. Kalau `schema.sql` lama sudah perna
 3. Karyawan daftar sendiri di alamat yang sama. Pemilik buka **Pengaturan > Anggota**, masukkan email karyawan, pilih perannya.
 
 ## Catatan
-- Kunci di dalam `index.html` adalah anon key yang memang publik. Jangan pernah memasukkan `service_role`/secret key atau password database ke repo.
+- Kunci di dalam `app.html` adalah anon key yang memang publik. Jangan pernah memasukkan `service_role`/secret key atau password database ke repo.
 - Supabase gratis menjeda proyek yang tidak dipakai satu minggu. Buka aplikasi sesekali, atau aktifkan lagi lewat dashboard.
 - Paket gratis tidak punya cadangan otomatis. Ekspor data berkala dari dashboard Supabase.
 - Pencatat memasukkan harga toko dan bisa menaksir modal kalau tahu kurs pasar. Kalau ingin lebih ketat, jadikan input harga khusus pemilik.
