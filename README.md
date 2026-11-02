@@ -39,4 +39,4 @@ Di Supabase buka **SQL Editor > New query**. Kalau `schema.sql` lama sudah perna
 ## Hemat kuota Supabase
 - Aplikasi hanya mengunduh data trip yang sedang dibuka. Barang, pesanan, dan pembayaran trip lama tidak ikut terunduh.
 - Perubahan dari HP lain datang lewat Realtime, dan hanya tabel yang berubah yang dimuat ulang. Pemeriksaan berkala hanya cadangan (tiap 3 menit saat Realtime tersambung).
-- Proyek Supabase gratis dijeda kalau 7 hari tidak ada aktivitas. Buka aplikasi sesekali, atau minta file `keepalive.yml` opsional.
+- Proyek Supabase gratis dijeda kalau 7 hari tidak ada aktivitas. `.github/workflows/keepalive.yml` memanggil database ringan tiap 6 hari supaya tidak dijeda (1 permintaan kecil, bisa dijalankan manual lewat tab Actions).

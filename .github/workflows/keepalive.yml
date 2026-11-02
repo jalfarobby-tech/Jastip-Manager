@@ -1,0 +1,15 @@
+# Supabase gratis menjeda proyek yang tidak dipakai 7 hari. Ping ringan ini menjaganya tetap aktif.
+name: Jaga Supabase tetap aktif
+on:
+  schedule:
+    - cron: '17 3 */6 * *'
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping database
+        run: |
+          curl -fsS --max-time 30 \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYndncHF3cm9pbHpmeWdneXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzE5NjYsImV4cCI6MjEwOTA0Nzk2Nn0.QIGkI8VDYlvnWFfudVE4WQHrCR6DOyRPwH3LwKr6bAY" \
+            "https://tibwgpqwroilzfyggyuz.supabase.co/rest/v1/trips?select=id&limit=1" > /dev/null
