@@ -402,8 +402,8 @@ button.pr-card{cursor:pointer}
 
 .top{--bar-ink:var(--ink)}
 .tripsel select:focus{outline-color:var(--blue)!important}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tripsel select{filter:invert(1) hue-rotate(180deg)}}
-:root[data-theme="dark"] .tripsel select{filter:invert(1) hue-rotate(180deg)}
+
+
 @media(max-width:899px){.top .brand{display:inline-flex;align-items:center;margin-right:8px}.top .brand .bn{display:none}}
 .tile b{font-size:clamp(1rem,4.4vw,1.35rem)}.tile{padding:12px 10px;gap:9px}.tile .ti{width:40px;height:40px}
 .tile small{overflow:hidden;text-overflow:ellipsis}
@@ -489,6 +489,18 @@ main .list:empty{display:none}
 .auth-h{padding-top:6px;font-size:clamp(2.1rem,9.6vw,3rem)}
 .auth-card{padding-top:22px;gap:12px}.auth-card h1{font-size:2rem}
 .lux-st dt{padding-right:6px}
+
+/* pilihan trip: tombol jelas di terang dan gelap */
+.tripsel select{border:1.5px solid var(--rule)!important;border-radius:99px!important;background-color:var(--sunken)!important;background-position:right 12px center!important;color:var(--ink)!important;font-family:var(--f-body)!important;font-weight:700!important;font-size:.95rem!important;padding:0 40px 0 16px!important;min-height:44px!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tripsel select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23eef1f9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important}}
+:root[data-theme="dark"] .tripsel select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23eef1f9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important}
+.tripsel select option{color:#111;background:#fff}
+.tripsel{margin-right:6px}
+.icon-btn.spin svg{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.deskout{display:none}
+@media(min-width:900px){nav.tabs .in .deskout{display:flex;margin-top:18px;border-top:1px solid var(--rule);border-radius:0 0 14px 14px;color:var(--red)}nav.tabs .deskout svg{background:none!important}}
+.top .icon-btn{color:var(--ink)}
+.top .icon-btn{width:42px;height:42px}.top .icon-btn svg{width:22px;height:22px}
 </style>
 </head>
 <body>
@@ -884,7 +896,8 @@ async function poll(force){
   APP.lastPoll=Date.now();
   try{var before=sigOf();await loadAll();if(sigOf()!==before)softRender()}catch(e){}
 }
-setInterval(function(){poll(false)},30000);
+setInterval(function(){poll(false)},8000);
+window.addEventListener('focus',function(){poll(false)});window.addEventListener('online',function(){poll(false)});
 document.addEventListener('visibilitychange',function(){
   if(document.hidden){if(APP.dirty)flush()}
   else if(Date.now()-APP.lastPoll>8000)poll(false);
@@ -1059,6 +1072,8 @@ var ICO={
   pesanan:'<path d="M4 5h16v11H9l-5 4V5z"/>',
   belanja:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 12h11L21 7H6"/>',
   tagihan:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.4"/><path d="M17 14.2c2.4.3 4 2.2 4 5"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+  logout:'<path d="M10 4H5v16h5"/><path d="M16 8l4 4-4 4M20 12H9"/>',
   gear:'<path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7M12 17h.01"/>',
   plus:'<path d="M12 5v14M5 12h14"/>', minus:'<path d="M5 12h14"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
@@ -1083,7 +1098,7 @@ function val(id){var el=document.getElementById(id);return el?el.value:''}
 function viewHeader(){
   var t=curTrip();
   var sel=S.trips.length?'<div class="tripsel"><select id="tripSel" data-chg="trip" aria-label="Trip aktif">'+S.trips.map(function(x){return '<option value="'+x.id+'"'+(t&&x.id===t.id?' selected':'')+'>'+esc(x.nama)+'</option>'}).join('')+(S.role==='owner'?'<option value="__new">+ Trip baru…</option>':'')+'</select></div>':'<div class="tripsel"><b>Jastip Manager</b></div>';
-  return '<header class="top"><div class="in"><span class="brand">'+logo(28)+'<span class="bn">Jastip Manager</span></span>'+sel+'<span id="syncdot" class="syncdot '+APP.sync+'" title="'+(APP.sync==='ok'?'Tersimpan':APP.sync==='saving'?'Menyimpan…':'Belum tersimpan')+'" role="img" aria-label="'+(APP.sync==='ok'?'Tersimpan':APP.sync==='saving'?'Menyimpan':'Belum tersimpan')+'"></span><button class="icon-btn" data-act="help" aria-label="Cara pakai">'+ico('help')+'</button><button class="icon-btn" data-act="settings" aria-label="Pengaturan">'+ico('gear')+'</button></div></header>';
+  return '<header class="top"><div class="in"><span class="brand">'+logo(28)+'<span class="bn">Jastip Manager</span></span>'+sel+'<span id="syncdot" class="syncdot '+APP.sync+'" title="'+(APP.sync==='ok'?'Tersimpan':APP.sync==='saving'?'Menyimpan…':'Belum tersimpan')+'" role="img" aria-label="'+(APP.sync==='ok'?'Tersimpan':APP.sync==='saving'?'Menyimpan':'Belum tersimpan')+'"></span><button class="icon-btn" data-act="refresh" aria-label="Muat ulang data" title="Muat ulang data">'+ico('refresh')+'</button><button class="icon-btn" data-act="help" aria-label="Cara pakai">'+ico('help')+'</button><button class="icon-btn" data-act="settings" aria-label="Pengaturan">'+ico('gear')+'</button></div></header>';
 }
 function viewNav(C){
   var tabs=allowedTabs();
@@ -1091,7 +1106,7 @@ function viewNav(C){
   var belum=C?C.items.filter(function(i){return C.per[i.id].ordered>0&&i.status==='belum'}).length:0;
   return '<nav class="tabs" aria-label="Menu utama"><div class="in">'+tabs.map(function(k){
     return '<button data-act="tab" data-tab="'+k+'" aria-current="'+(UI.tab===k)+'">'+ico(k)+'<span>'+TAB_LABEL[k]+'</span>'+(k==='belanja'&&belum?'<span class="dot">'+belum+'</span>':'')+'</button>';
-  }).join('')+'</div></nav>';
+  }).join('')+'<button class="deskout" data-oa="logout">'+ico('logout')+'<span>Keluar</span></button></div></nav>';
 }
 function viewBanner(){
   return '';
@@ -1441,7 +1456,7 @@ function modalSettings(){
   }
   var payBox=own?'<div class="stack"><div class="label">Info pembayaran</div><label class="field"><span>Rekening atau e-wallet</span><textarea id="pay-info" rows="3" placeholder="BCA 1234567890 a.n. Nama\nDANA 0812xxxxxxx">'+esc(APP.shop.pay||'')+'</textarea><small>Ikut tercantum di pesan WhatsApp kalau pelanggan masih punya sisa tagihan.</small></label><button class="btn" data-oa="payinfo">Simpan info pembayaran</button>'+(APP.noDeliv?'<p class="small" style="color:var(--amber)">Fitur alur kirim belum aktif. Jalankan file SQL tambahan di Supabase (lihat README), lalu muat ulang.</p>':'')+'</div>':'';
   return sheet('Pengaturan','<div class="sheet-bd">'+payBox+
-    '<div class="stack"><div class="label">Akun</div><div class="list"><div class="row" style="min-height:56px"><div class="grow"><div class="t">'+esc(APP.user.email)+'</div><div class="sub">'+esc(APP.shop.name)+' · '+ROLE_LABEL[S.role]+'</div></div></div></div>'+
+    '<div class="stack"><div class="label">Akun</div><div class="list"><div class="row" style="min-height:56px"><div class="grow"><div class="t">'+esc(APP.user.email)+'</div><div class="sub">'+esc(APP.shop.name)+' · '+ROLE_LABEL[S.role]+'</div></div><button class="btn sm" data-oa="logout">'+ico('logout')+'Keluar</button></div></div>'+
     '<button class="btn" data-oa="reload">Muat ulang data</button>'+(own?'<button class="btn" data-oa="export">Unduh tagihan trip ini (CSV)</button>':'')+'<button class="btn danger" data-oa="logout">Keluar</button></div>'+mem+'</div>'+
     '<div class="sheet-ft"><button class="btn primary" data-act="modal-close">Selesai</button></div>');
 }
@@ -1474,7 +1489,8 @@ function liveTrip(){var el=document.getElementById('trip-preview');if(!el)return
   el.innerHTML='Contoh: barang 10.000 '+esc(mata)+' dijual <b>Rp'+Math.round(unitPrice(t,{harga:10000})).toLocaleString('id-ID')+'</b> (modal Rp'+Math.round(10000*kurs).toLocaleString('id-ID')+')'}
 
 /* ---------- aksi ---------- */
-function goTab(k){UI.tab=k;UI.q='';UI.qo='';render();window.scrollTo(0,0);var m=document.querySelector('main');if(m){m.classList.add('enter');setTimeout(function(){m.classList.remove('enter')},600)}}
+async function doRefresh(){var b=document.querySelector('[data-act=refresh]');if(b)b.classList.add('spin');try{if(APP.dirty)await flush();await loadAll();softRender();toast('Data diperbarui')}catch(e){var b2=document.querySelector('[data-act=refresh]');if(b2)b2.classList.remove('spin');toast('Belum bisa memuat. Periksa koneksi internet.')}}
+function goTab(k){UI.tab=k;UI.q='';UI.qo='';render();poll(false);window.scrollTo(0,0);var m=document.querySelector('main');if(m){m.classList.add('enter');setTimeout(function(){m.classList.remove('enter')},600)}}
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}}
 function readNum(id){var el=document.getElementById(id);return el?parseFloat(el.value):NaN}
 function buyItem(C,id,q,pr){
@@ -1496,6 +1512,7 @@ document.addEventListener('click',function(e){
     case 'cf':UI.cf=el.dataset.f;render();break;
     case 'trip-new':UI.modal={type:'trip-new'};UI.focus='t-nama';render();break;
     case 'trip-edit':UI.modal={type:'trip-edit'};render();break;
+    case 'refresh':doRefresh();break;
     case 'settings':UI.modal={type:'settings'};render();if(S.role==='owner')loadMembers();break;
     case 'help':UI.modal={type:'help'};render();break;
     case 'help-go':UI.modal=null;goTab(el.dataset.tab);break;
