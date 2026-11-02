@@ -13,7 +13,7 @@
 <title>Jastip Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* Konsep: nota toko. Kertas putih, tinta biru bolpen, kode barang ditandai stabilo kuning, cap untuk status.
    Satu hal yang berani: nota pelanggan dan capnya. Sisanya tenang dan jelas. */
@@ -407,6 +407,88 @@ button.pr-card{cursor:pointer}
 @media(max-width:899px){.top .brand{display:inline-flex;align-items:center;margin-right:8px}.top .brand .bn{display:none}}
 .tile b{font-size:clamp(1rem,4.4vw,1.35rem)}.tile{padding:12px 10px;gap:9px}.tile .ti{width:40px;height:40px}
 .tile small{overflow:hidden;text-overflow:ellipsis}
+
+/* ===== Tema butik: safir pekat, emas stabilo, serif ===== */
+:root{--serif:'Instrument Serif',Georgia,'Times New Roman',serif}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--paper:#f3f4f9;--ink:#0b1030;--muted:#586080;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e1e4ef;--gold:#f0bf2a}}
+:root[data-theme="light"]{--paper:#f3f4f9;--ink:#0b1030;--muted:#586080;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e1e4ef;--gold:#f0bf2a}
+body{background:var(--paper)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) body::before{background:var(--surface)!important}}
+h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:0}
+h1{font-size:2.3rem;line-height:1.05}h2{font-size:1.6rem;line-height:1.1}
+.sheet h1,.sheet h2,.sheet-hd h2{font-size:1.7rem}
+.nota .who,.nota .big,.profit .v{font-family:var(--serif);font-weight:400}
+.btn{border-radius:14px}
+.btn.primary{background:linear-gradient(180deg,#2536b4,#16227a);border-color:#16227a;box-shadow:0 8px 18px -10px rgba(22,34,122,.8)}
+nav.tabs button[aria-current="true"] svg{background:var(--blue-soft)}
+main .list{background:var(--surface);border:1px solid var(--rule);border-radius:20px;padding:0 16px}
+main .list:empty{display:none}
+.sh{font-family:var(--serif);font-weight:400;font-size:1.6rem;line-height:1.1;margin:0 0 10px;letter-spacing:0}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:22px;padding:18px}
+/* kartu utama Beranda */
+.lux{position:relative;overflow:hidden;color:#fff;border-radius:28px;padding:20px 20px 18px;background:radial-gradient(90% 120% at 100% 0%,#3147d6 0%,rgba(49,71,214,0) 60%),linear-gradient(160deg,#101a58,#0a1034);box-shadow:0 28px 50px -30px rgba(10,16,52,.9)}
+.lux::after{content:"";position:absolute;left:20px;top:0;width:54px;height:3px;background:var(--gold);border-radius:0 0 3px 3px}
+.lux-top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600;font-size:.92rem;opacity:.92}
+.lux-trip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lux-edit{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;min-height:36px}
+.lux-live{display:flex;align-items:center;gap:7px;font-size:.82rem}.lux-live i{width:8px;height:8px;border-radius:50%;background:#5be394}
+.lux-h{font-family:var(--serif);font-weight:400;font-size:clamp(1.9rem,8.4vw,2.5rem);line-height:1.06;margin:26px 0 20px;color:#fff;max-width:14em}
+.lux-bar{height:6px;border-radius:9px;background:rgba(255,255,255,.16);overflow:hidden}
+.lux-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#f7d155,var(--gold))}
+.lux-st{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 0;border-top:1px solid rgba(255,255,255,.14)}
+.lux-st>div{padding:14px 0 0}.lux-st>div+div{padding-left:14px;border-left:1px solid rgba(255,255,255,.14)}
+.lux-st dd{margin:0;font-family:var(--serif);font-size:2.1rem;line-height:1;font-variant-numeric:lining-nums}
+.lux-st dd small{font-size:1.1rem;opacity:.6}
+.lux-st dt{font-size:.78rem;opacity:.68;margin-top:4px;font-weight:600}
+.lux-meta{margin:14px 0 0;font-size:.82rem;opacity:.62}
+.home2 .quick .btn{background:var(--surface);border:1px solid var(--rule)}
+/* daftar tugas */
+.prio{gap:0;background:var(--surface);border:1px solid var(--rule);border-radius:22px;overflow:hidden}
+.pr-card{border:0;border-radius:0;border-bottom:1px solid var(--rule);background:transparent;padding:14px 16px}
+.pr-card:last-child{border-bottom:0}
+.pr-card .pi{border-radius:50%;width:40px;height:40px;font-family:var(--serif);font-weight:400;font-size:1.35rem}
+.pill{background:transparent!important;border:1px solid var(--rule);color:var(--muted)!important;font-weight:700}
+.prio .okpill{border-radius:0;margin:0}
+/* untung */
+.gain{background:var(--surface);border:1px solid var(--rule);border-radius:26px;padding:22px}
+.gain-l{color:var(--muted);font-weight:600;font-size:.9rem}
+.gain-v{font-family:var(--serif);font-size:clamp(2.6rem,12vw,3.4rem);line-height:1.05;color:var(--blue);margin:4px 0;font-variant-numeric:lining-nums}
+.gain-s{color:var(--green);font-weight:700;font-size:.9rem}
+.gain .fin2{margin-top:14px;gap:0}.gain .fin2 div{background:none;border-radius:0;padding:12px 0;border-top:1px solid var(--rule);font-weight:600}
+.dash .pr-row .pt,.pipe .pr-row .pt{height:8px}
+.card .okpill{margin-top:12px}
+/* login */
+.auth{background:radial-gradient(110% 60% at 90% 0%,#3148d8 0%,rgba(49,72,216,0) 55%),linear-gradient(170deg,#0f1950,#080d2c)}
+.auth-hero{max-width:520px;padding:calc(28px + env(safe-area-inset-top,0px)) 26px 26px;gap:14px;justify-content:flex-start;position:relative}
+.auth-back{margin:0;opacity:.7}
+.auth-hero .auth-brand{flex-direction:row;align-items:center;gap:12px;font-family:var(--f-body);font-size:1.05rem;font-weight:700;letter-spacing:0;margin-top:10px}
+.auth-h{font-family:var(--serif);font-weight:400;font-size:clamp(2.3rem,10.5vw,3.3rem);line-height:1.02;margin-top:auto;padding-top:22px;color:#fff;max-width:11em}
+.auth-hero p{display:none}
+.auth-pts{display:none;list-style:none;margin:8px 0 0;padding:0;gap:12px;flex-direction:column}
+.auth-pts li{position:relative;padding-left:28px;opacity:.82;font-weight:500}
+.auth-pts li::before{content:"";position:absolute;left:2px;top:.45em;width:10px;height:10px;border-radius:50%;background:var(--gold)}
+.auth-card{max-width:520px;background:#fbfbfe;border-radius:30px 30px 0 0;padding:28px 24px calc(30px + env(safe-area-inset-bottom,0px));gap:16px;box-shadow:0 -30px 60px -30px rgba(0,0,0,.5)}
+.auth-card h1{font-size:2.2rem}
+.auth-card .field>span{font-weight:700;font-size:.9rem}
+.auth-card input{min-height:56px;border-radius:14px;background:#eef0f8;border:1.5px solid transparent;padding:0 16px;font-size:1rem}
+.auth-card input:focus{background:#fff;border-color:var(--blue);box-shadow:0 0 0 4px rgba(27,42,154,.14);outline:0}
+.pw{position:relative;display:block}.pw input{width:100%;padding-right:104px}
+.peek{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--blue);font:inherit;font-weight:700;font-size:.88rem;min-height:44px;padding:0 12px;border-radius:10px;cursor:pointer}
+.peek:hover{background:var(--blue-soft)}
+.auth-card .btn.primary{min-height:56px;font-size:1.02rem}
+@media(min-width:900px){
+ .auth{flex-direction:row;align-items:stretch;justify-content:center}
+ .auth-hero{max-width:none;width:50%;flex:none;padding:56px 64px;justify-content:flex-start}
+ .auth-h{font-size:4.2rem;margin-top:auto;padding-top:0}
+ .auth-pts{display:flex;margin-bottom:12px}
+ .auth-card{width:50%;max-width:none;flex:none;border-radius:0;background:#fbfbfe;justify-content:center;padding:56px max(64px,calc((50vw - 400px)/2));box-shadow:none}
+}
+@media(min-width:900px){.lux-h{font-size:2.8rem}.home2>.col>.sec,.home2>.col>.lux{margin:0}}
+
+.auth-hero{padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:14px}
+.auth-h{padding-top:6px;font-size:clamp(2.1rem,9.6vw,3rem)}
+.auth-card{padding-top:22px;gap:12px}.auth-card h1{font-size:2rem}
+.lux-st dt{padding-right:6px}
 </style>
 </head>
 <body>
@@ -824,7 +906,7 @@ function idErr(e){
 }
 function viewAuth(){
   var p=APP.phase,h='';
-  var hero='<div class="auth-hero"><a class="auth-back" href="./">← Beranda</a><div class="auth-brand">'+logo(44)+'Jastip Manager</div><p>Catat pesanan, belanja, dan tagihan jastip di satu tempat.</p></div>',brand='';
+  var hero='<div class="auth-hero"><a class="auth-back" href="./">← Beranda</a><div class="auth-brand">'+logo(40)+'<span>Jastip Manager</span></div><h2 class="auth-h">Jastip yang rapi, dari chat sampai untung.</h2><ul class="auth-pts"><li>Impor pesanan langsung dari chat WhatsApp</li><li>Daftar belanja dan nota pelanggan otomatis</li><li>Untung tiap trip, hanya terlihat pemilik</li></ul></div>',brand='';
   if(p==='boot')h=brand+'<p class="muted" style="text-align:center">Memuat…</p>';
   else if(p==='auth'){
     var up=APP.mode==='signup';
@@ -832,7 +914,7 @@ function viewAuth(){
     '<p class="muted">'+(up?'Daftar dengan email. Setelah itu kamu bisa membuat toko, atau minta pemilik toko menambahkanmu.':'Masuk untuk membuka data tokomu.')+'</p>'+
     '<form data-aform="'+(up?'signup':'login')+'" novalidate>'+
     '<label class="field"><span>Email</span><input id="a-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" required></label>'+
-    '<label class="field"><span>Password</span><input id="a-pass" name="pass" type="password" autocomplete="'+(up?'new-password':'current-password')+'" minlength="6" required>'+(up?'<small>Minimal 6 karakter.</small>':'')+'</label>'+
+    '<label class="field"><span>Password</span><span class="pw"><input id="a-pass" name="pass" type="password" autocomplete="'+(up?'new-password':'current-password')+'" minlength="6" required><button type="button" class="peek" data-oa="peek" aria-label="Tampilkan password">Lihat</button></span>'+(up?'<small>Minimal 6 karakter.</small>':'')+'</label>'+
     '<p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p>'+
     '<button class="btn primary block" type="submit" id="a-go">'+(up?'Daftar':'Masuk')+'</button></form>'+
     (up?'':'<button class="btn text block" data-oa="forgot">Lupa password?</button>')+'<button class="btn text block" data-oa="mode">'+(up?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>';
@@ -926,6 +1008,7 @@ document.addEventListener('click',async function(e){
   else if(a==='logout'){doLogout()}
   else if(a==='recheck'){APP.phase='boot';draw();try{await afterLogin()}catch(err){fail(err)}}
   else if(a==='rate-use'){var k=document.getElementById('t-kurs');if(k&&UI.rateUse){k.value=UI.rateUse;k.dispatchEvent(new Event('input',{bubbles:true}))}}
+  else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
   else if(a==='export'){exportCsv()}
   else if(a==='payinfo'){
     var pv=((document.getElementById('pay-info')||{}).value||'').trim();
@@ -1060,34 +1143,33 @@ function viewHome(C){
   else if(!nLines)rows=['<div class="onb"><p><b>Belum ada pesanan.</b> Salin chat grup WhatsApp, lalu impor. Kode dan jumlah terbaca otomatis.</p><button class="btn primary" data-act="import-open">Impor chat WhatsApp</button></div>'].concat(rows);
   var siapHtml='',pipeHtml='';
   if(!APP.noDeliv&&S.role!=='pembeli'&&C.custs.some(function(c){return c.stage!=='none'})){
-    if(siapList.length)siapHtml='<div class="sec"><div class="sl" style="--c:var(--c-green)">Siap dikabari</div><div class="list">'+siapList.map(function(c){
+    if(siapList.length)siapHtml='<div class="sec"><h2 class="sh">Siap dikabari</h2><div class="list">'+siapList.map(function(c){
       var wa=phone(c.c.hp);
       return '<div class="row"><div class="grow"><div class="t">'+esc(c.c.nama)+'</div><div class="sub">'+c.rows.map(function(r){return esc(r.item.kode)}).join(', ')+' sudah dibeli semua</div></div>'+
         (wa?'<a class="btn sm primary" target="_blank" rel="noopener" data-told="'+c.c.id+'" href="https://wa.me/'+wa+'?text='+encodeURIComponent(waReady(c,t))+'">'+ico('wa')+'Kabari</a>':'<button class="btn sm" data-act="cust-open" data-id="'+c.c.id+'">Isi nomor WA</button>')+'</div>'}).join('')+'</div></div>';
     var cnt={},tot=0;C.custs.forEach(function(c){if(c.stage!=='none'){cnt[c.stage]=(cnt[c.stage]||0)+1;tot++}});
     var lunasN=C.custs.filter(function(c){return c.stage!=='none'&&c.tagihan>0&&c.sisa<=0}).length;
-    pipeHtml='<div><div class="sl" style="--c:var(--c-blue)">Status pelanggan</div><div class="pipe">'+STAGE.map(function(s){var n=cnt[s[0]]||0;
+    pipeHtml='<div class="card"><h2 class="sh">Status pelanggan</h2><div class="pipe">'+STAGE.map(function(s){var n=cnt[s[0]]||0;
       return '<button class="pr-row" data-act="stage" data-f="'+s[0]+'"><span class="pl">'+s[1]+'</span><span class="pt"><i class="s-'+s[2]+'" style="width:'+(tot?Math.max(n?6:0,Math.round(n/tot*100)):0)+'%"></i></span><b class="num">'+n+'</b></button>'}).join('')+
       '</div><div class="okpill" style="margin-top:12px">'+dic('check')+'Lunas '+lunasN+' dari '+tot+' pelanggan</div></div>';
   }
   var nCust=C.custs.filter(function(c){return c.tagihan>0||c.rows.length||c.wait.length||c.habis.length}).length;
-  var tiles='<div class="tiles">'+tile('t-or','doc',nCust,'Pelanggan','tagihan')+tile('t-te','cart',doneN+'/'+T.codes,'Barang dibeli','belanja')+tile('t-pu','wallet',piut.length,'Belum lunas','tagihan')+
-    (owner?tile('t-gr','trend',rpS(T.estRev-T.estCost-(+t.biayaLain||0)),'Perkiraan untung',null):tile('t-bl','check',C.custs.filter(function(c){return c.tagihan>0&&c.sisa<=0}).length,'Lunas','tagihan'))+'</div>';
-  var h='<div class="home2"><div class="col"><div class="dash"><div class="dash-h"><span class="av">'+esc((APP.shop&&APP.shop.name||'J').charAt(0).toUpperCase())+'</span><span class="tt">'+esc(t.nama)+'</span>'+(owner?'<button class="rt" data-act="trip-edit">Ubah trip</button>':'<span class="rt"><i class="dot"></i>Live</span>')+'</div><div class="dash-b">'+
-    '<div><div class="sl" style="--c:var(--c-orange)">Ringkasan cepat</div>'+tiles+'<p style="margin:12px 0 0;font-weight:700">'+esc(sentence)+'</p>'+(T.codes>0?'<div class="pbar" style="margin-top:10px"><i style="width:'+pct+'%"></i></div>':'')+(meta?'<p class="small muted" style="margin:8px 0 0">'+meta+'</p>':'')+'</div>'+
-    '<div><div class="sl" style="--c:var(--c-amber)">Prioritas hari ini</div><div class="prio">'+(rows.length?rows.join(''):'<div class="okpill">'+dic('check')+'Tidak ada yang tertunda.</div>')+'</div></div>'+pipeHtml+'</div></div>'+
-    '<div class="quick"><button class="btn" data-act="line-new">'+ico('plus')+'Pesanan</button><button class="btn" data-act="import-open">'+ico('wa')+'Impor chat</button><button class="btn" data-act="item-new">'+ico('plus')+'Barang</button></div>'+siapHtml+'</div>';
+  var net=T.estRev-T.estCost-(+t.biayaLain||0);
+  var h='<div class="home2"><div class="col"><section class="lux"><div class="lux-top"><span class="lux-trip">'+esc(t.nama)+'</span>'+(owner?'<button class="lux-edit" data-act="trip-edit">Ubah trip</button>':'<span class="lux-live"><i></i>Tersambung</span>')+'</div>'+
+    '<h1 class="lux-h">'+esc(sentence)+'</h1>'+(T.codes>0?'<div class="lux-bar" role="img" aria-label="'+doneN+' dari '+T.codes+' barang sudah dibeli"><i style="width:'+pct+'%"></i></div>':'')+
+    '<dl class="lux-st"><div><dd>'+nCust+'</dd><dt>pelanggan</dt></div><div><dd>'+doneN+'<small>/'+T.codes+'</small></dd><dt>barang dibeli</dt></div><div><dd>'+piut.length+'</dd><dt>belum lunas</dt></div></dl>'+
+    (meta?'<p class="lux-meta">'+meta+'</p>':'')+'</section>'+
+    '<div class="quick"><button class="btn" data-act="line-new">'+ico('plus')+'Pesanan</button><button class="btn" data-act="import-open">'+ico('wa')+'Impor chat</button><button class="btn" data-act="item-new">'+ico('plus')+'Barang</button></div>'+siapHtml+
+    '<section class="sec"><h2 class="sh">Perlu dikerjakan</h2><div class="prio">'+(rows.length?rows.join(''):'<div class="okpill">'+dic('check')+'Tidak ada yang tertunda.</div>')+'</div></section></div>';
+  h+='<div class="col">'+(owner?'<section class="gain"><div class="gain-l">Perkiraan untung bersih</div><div class="gain-v">'+rp(net)+'</div><div class="gain-s">Margin '+(T.estRev>0?Math.round(net/T.estRev*100):0)+'% dari omzet</div>'+
+      '<div class="fin2"><div><span>Omzet</span><span>'+rp(T.estRev)+'</span></div><div><span>Modal barang</span><span>− '+rp(T.estCost)+'</span></div>'+(+t.biayaLain?'<div><span>Biaya lain</span><span>− '+rp(t.biayaLain)+'</span></div>':'')+'</div></section>':'')+
+    (pipeHtml?pipeHtml:'');
   if(owner){
-    var net=T.estRev-T.estCost-(+t.biayaLain||0);
     var list=C.items.filter(function(i){return C.per[i.id].ordered>0}).map(function(i){var p=C.per[i.id];
       return '<div class="row"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">Terjual '+p.alloc+' pcs, omzet '+rp(p.revenue)+'</div></div><div class="end">'+(i.status==='dibeli'?'<b>'+rp(p.profit)+'</b><span class="small muted">untung</span>':'<span class="small muted">belum dibeli</span>')+'</div></div>'}).join('');
-    var mg=T.estRev>0?Math.round(net/T.estRev*100):0;
-    h+='<div class="col"><div class="dash"><div class="dash-h"><span class="av">'+dic('trend').replace('<svg','<svg style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"')+'</span><span class="tt">Performa trip</span><span class="rt">Hanya pemilik</span></div><div class="dash-b">'+
-      '<div><div class="sl" style="--c:var(--c-green)">Rincian pendapatan</div><div class="fin2"><div><span>Total modal</span><span class="m">'+rp(T.estCost)+'</span></div><div><span>Total omzet</span><span class="b">'+rp(T.estRev)+'</span></div>'+(+t.biayaLain?'<div><span>Biaya lain</span><span class="m">'+rp(t.biayaLain)+'</span></div>':'')+'<div><span>Margin bersih</span><span class="g">'+rp(net)+'</span></div></div>'+
-      '<div class="okpill" style="margin-top:12px">'+dic('check')+'Margin '+mg+'% dari omzet</div></div>'+
-      '<details class="more"><summary>Untung per barang</summary>'+(list||'<div class="empty">Belum ada pesanan.</div>')+'<p class="small muted" style="margin-top:10px">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p></details></div></div></div>';
+    h+='<details class="more"><summary>Untung per barang</summary>'+(list||'<div class="empty">Belum ada pesanan.</div>')+'<p class="small muted" style="margin-top:10px">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p></details>';
   }
-  h+='</div>';
+  h+='</div></div>';
   return h;
 }
 
