@@ -501,6 +501,7 @@ main .list:empty{display:none}
 @media(min-width:900px){nav.tabs .in .deskout{display:flex;margin-top:18px;border-top:1px solid var(--rule);border-radius:0 0 14px 14px;color:var(--red)}nav.tabs .deskout svg{background:none!important}}
 .top .icon-btn{color:var(--ink)}
 .top .icon-btn{width:42px;height:42px}.top .icon-btn svg{width:22px;height:22px}
+body.tripbusy main{opacity:.45;pointer-events:none;transition:opacity .15s}
 </style>
 </head>
 <body>
@@ -816,11 +817,11 @@ async function syncOnce(){
   if(role==='pencatat'&&Object.keys(touched).length)await refreshSell(Object.keys(touched));
 }
 async function refreshSell(tids){
+  if(!tids.length)return;
+  var rows=await fetchAll('items','id,sell_price','id',function(q){return q.in('trip_id',tids)});
+  var by={};S.items.forEach(function(x){by[x.id]=x});
   var ch=false;
-  for(const tid of tids){
-    var rows=await fetchAll('items','id,sell_price','id',function(q){return q.eq('trip_id',tid)});
-    rows.forEach(function(r){var it=S.items.find(function(x){return x.id===r.id});var v=r.sell_price==null?null:+r.sell_price;if(it&&it.sell!==v){it.sell=v;ch=true}});
-  }
+  rows.forEach(function(r){var it=by[r.id],v=r.sell_price==null?null:+r.sell_price;if(it&&it.sell!==v){it.sell=v;ch=true}});
   if(ch)softRender();
 }
 function setSync(s){APP.sync=s;var el=document.getElementById('syncdot');if(el){el.className='syncdot '+s;el.title=s==='ok'?'Tersimpan':s==='saving'?'Menyimpan…':'Belum tersimpan'}}
@@ -865,72 +866,125 @@ async function fetchAll(table,cols,ord,mod){
   return out;
 }
 function curKey(){return 'jastip.cur.'+(APP.shop&&APP.shop.id)}
-async function loadAll(light){
-  var sid=APP.shop.id,role=APP.role,own=role==='owner',pembeli=role==='pembeli';
-  var byShop=function(q){return q.eq('shop_id',sid)};
-  var ns=blank();ns.role=role;APP.noDeliv=false;
-  var jobs=[fetchAll('trips','id,name,currency,deadline,created_at','id',byShop)];
-  jobs.push(own?fetchAll('trip_pricing','*','trip_id',byShop):Promise.resolve([]));
-  jobs.push(fetchAll('items',pembeli?'id,trip_id,code,name,store,price,stock_cap,status,bought_qty':'id,trip_id,code,name,store,price,sell_price,stock_cap,status,bought_qty','id',byShop));
-  jobs.push((own||pembeli)?fetchAll('item_purchases','item_id,actual_price','item_id',byShop):Promise.resolve([]));
-  jobs.push(pembeli?Promise.resolve([]):fetchAll('customers','id,name,phone','id',byShop));
-  jobs.push(pembeli?Promise.resolve([]):fetchAll('order_lines','id,trip_id,customer_id,code,qty,ordered_at,cancelled,source','id',byShop));
-  jobs.push(pembeli?Promise.resolve([]):fetchAll('payments','id,trip_id,customer_id,amount,note,paid_at','id',byShop));
-  var skipLog=pembeli||(light&&APP.hashLoaded);
-  jobs.push(skipLog?Promise.resolve(null):fetchAll('import_log','hash','hash',byShop));
-  jobs.push(pembeli?Promise.resolve([]):fetchAll('deliveries','id,trip_id,customer_id,status,resi','id',byShop).catch(function(){APP.noDeliv=true;return []}));
-  var D=await Promise.all(jobs);
-  var pr={};D[1].forEach(function(p){pr[p.trip_id]=p});
-  D[0].sort(function(a,b){return a.created_at<b.created_at?1:-1});
-  ns.trips=D[0].map(function(t){var p=pr[t.id]||{};return {id:t.id,nama:t.name,mata:t.currency,deadline:t.deadline||'',
-    kurs:p.rate!=null?+p.rate:0,feePct:+p.fee_pct||0,feeFlat:+p.fee_flat||0,round:+p.round_to||1,biayaLain:+p.extra_cost||0}});
-  var pu={};D[3].forEach(function(p){pu[p.item_id]=+p.actual_price});
-  ns.items=D[2].map(function(i){var o={id:i.id,trip:i.trip_id,kode:i.code,nama:i.name,toko:i.store||'',harga:+i.price,stok:i.stock_cap==null?'':+i.stock_cap,status:i.status,sell:i.sell_price==null?null:+i.sell_price};
-    if(i.bought_qty!=null)o.boughtQty=+i.bought_qty;if(pu[i.id]!=null)o.aktual=pu[i.id];return o});
-  ns.customers=D[4].map(function(c){return {id:c.id,nama:c.name,hp:c.phone||''}});
-  ns.lines=D[5].map(function(l){return {id:l.id,trip:l.trip_id,cust:l.customer_id,kode:l.code,qty:l.qty,t:Date.parse(l.ordered_at),batal:!!l.cancelled,src:l.source}});
-  ns.payments=D[6].map(function(p){return {id:p.id,trip:p.trip_id,cust:p.customer_id,amt:+p.amount,note:p.note||'',t:Date.parse(p.paid_at)}});
-  ns.hashes=D[7]?D[7].map(function(h){return h.hash}):(pembeli?[]:(S&&S.hashes)||[]);
-  if(!pembeli&&D[7])APP.hashLoaded=true;
-  ns.deliv=(D[8]||[]).map(function(d){return {id:d.id,trip:d.trip_id,cust:d.customer_id,st:d.status,resi:d.resi||''}});
-  if(pembeli){
-    var tl=await Promise.all(ns.trips.map(function(t){return sb.rpc('shopping_list',{p_trip:t.id}).then(function(r){return {t:t.id,r:must(r).data||[]}})}));
-    ns.customers=[{id:'agg',nama:'Semua pelanggan',hp:''}];
-    tl.forEach(function(x){x.r.forEach(function(r){if(r.ordered_qty>0)ns.lines.push({id:'agg-'+r.item_id,trip:x.t,cust:'agg',kode:r.code,qty:r.ordered_qty,t:0,src:'agg'})})});
+/* Data dimuat per trip: yang diunduh hanya trip yang sedang dibuka (barang, pesanan, pembayaran, pengiriman).
+   Daftar trip, harga trip, dan pelanggan kecil jadi selalu dimuat. Trip lama tidak ikut terunduh. */
+var SCOPED=['items','order_lines','payments','deliveries'];
+function scopedFetch(tid,need){
+  var role=APP.role,own=role==='owner',pembeli=role==='pembeli',out={},p=[];
+  var byTrip=function(q){return q.eq('trip_id',tid)};
+  if(need('items')){
+    p.push((async function(){
+      out.items=await fetchAll('items',pembeli?'id,trip_id,code,name,store,price,stock_cap,status,bought_qty':'id,trip_id,code,name,store,price,sell_price,stock_cap,status,bought_qty','id',byTrip);
+      out.pur=[];
+      if(own||pembeli){
+        var ids=out.items.filter(function(i){return i.status==='dibeli'}).map(function(i){return i.id});
+        var parts=chunk(ids,120);
+        var rs=await Promise.all(parts.map(function(part){return sb.from('item_purchases').select('item_id,actual_price').in('item_id',part)}));
+        rs.forEach(function(r){out.pur=out.pur.concat(must(r).data)});
+      }
+    })());
   }
+  if(pembeli){
+    if(need('items'))p.push(sb.rpc('shopping_list',{p_trip:tid}).then(function(r){out.agg=must(r).data||[]}));
+  }else{
+    if(need('order_lines'))p.push(fetchAll('order_lines','id,trip_id,customer_id,code,qty,ordered_at,cancelled,source','id',byTrip).then(function(x){out.lines=x}));
+    if(need('payments'))p.push(fetchAll('payments','id,trip_id,customer_id,amount,note,paid_at','id',byTrip).then(function(x){out.pays=x}));
+    if(need('deliveries'))p.push(fetchAll('deliveries','id,trip_id,customer_id,status,resi','id',byTrip).then(function(x){out.deliv=x}).catch(function(){APP.noDeliv=true;out.deliv=[]}));
+  }
+  return Promise.all(p).then(function(){return out});
+}
+async function loadAll(o){
+  o=o||{};
+  var sid=APP.shop.id,role=APP.role,own=role==='owner',pembeli=role==='pembeli';
+  var only=o.only||null,need=function(n){return !only||only.indexOf(n)>=0};
+  var prev=S||blank();
+  var byShop=function(q){return q.eq('shop_id',sid)};
   var want=null;try{want=localStorage.getItem(curKey())}catch(e){}
-  var keep=S&&S.cur&&ns.trips.some(function(t){return t.id===S.cur})?S.cur:null;
-  ns.cur=keep||(want&&ns.trips.some(function(t){return t.id===want})?want:(ns.trips[0]&&ns.trips[0].id)||null);
+  if(!only||only.indexOf('deliveries')>=0)APP.noDeliv=false;
+  var guess=prev.cur||want||null;
+  var needTrips=need('trips');
+  var tripsP=needTrips?fetchAll('trips','id,name,currency,deadline,created_at','id',byShop):Promise.resolve(null);
+  var priceP=(needTrips&&own)?fetchAll('trip_pricing','*','trip_id',byShop):Promise.resolve([]);
+  var custP=(!pembeli&&need('customers'))?fetchAll('customers','id,name,phone','id',byShop):Promise.resolve(null);
+  var logP=(pembeli||only||(o.light&&APP.hashLoaded))?Promise.resolve(null):fetchAll('import_log','hash','hash',byShop);
+  var scopeNeed=function(n){return need(n)&&SCOPED.indexOf(n)>=0};
+  var anyScope=SCOPED.some(scopeNeed)||(only&&only.indexOf('items')>=0);
+  var scopeP=(guess&&anyScope)?scopedFetch(guess,need):Promise.resolve(null);
+  var D=await Promise.all([tripsP,priceP,custP,logP,scopeP]);
+  var ns=blank();ns.role=role;
+  if(D[0]){
+    var pr={};D[1].forEach(function(p){pr[p.trip_id]=p});
+    D[0].sort(function(a,b){return a.created_at<b.created_at?1:-1});
+    ns.trips=D[0].map(function(t){var p=pr[t.id]||{};return {id:t.id,nama:t.name,mata:t.currency,deadline:t.deadline||'',
+      kurs:p.rate!=null?+p.rate:0,feePct:+p.fee_pct||0,feeFlat:+p.fee_flat||0,round:+p.round_to||1,biayaLain:+p.extra_cost||0}});
+  }else ns.trips=prev.trips;
+  var has=function(id){return ns.trips.some(function(t){return t.id===id})};
+  var cur=(prev.cur&&has(prev.cur))?prev.cur:(want&&has(want)?want:(ns.trips[0]&&ns.trips[0].id)||null);
+  var sc=D[4];
+  if(cur&&anyScope&&cur!==guess)sc=await scopedFetch(cur,need);
+  if(!cur)sc=null;
+  ns.cur=cur;
+  if(!pembeli)ns.customers=D[2]?D[2].map(function(c){return {id:c.id,nama:c.name,hp:c.phone||''}}):prev.customers;
+  /* tabel yang tidak ikut dimuat dipakai dari data sebelumnya */
+  var sameTrip=prev.cur===cur;
+  var pu={};if(sc&&sc.pur)sc.pur.forEach(function(p){pu[p.item_id]=+p.actual_price});
+  if(sc&&sc.items){
+    ns.items=sc.items.map(function(i){var x={id:i.id,trip:i.trip_id,kode:i.code,nama:i.name,toko:i.store||'',harga:+i.price,stok:i.stock_cap==null?'':+i.stock_cap,status:i.status,sell:i.sell_price==null?null:+i.sell_price};
+      if(i.bought_qty!=null)x.boughtQty=+i.bought_qty;if(pu[i.id]!=null)x.aktual=pu[i.id];return x});
+  }else ns.items=sameTrip?prev.items:[];
+  ns.lines=(sc&&sc.lines)?sc.lines.map(function(l){return {id:l.id,trip:l.trip_id,cust:l.customer_id,kode:l.code,qty:l.qty,t:Date.parse(l.ordered_at),batal:!!l.cancelled,src:l.source}}):(sameTrip?prev.lines:[]);
+  ns.payments=(sc&&sc.pays)?sc.pays.map(function(p){return {id:p.id,trip:p.trip_id,cust:p.customer_id,amt:+p.amount,note:p.note||'',t:Date.parse(p.paid_at)}}):(sameTrip?prev.payments:[]);
+  ns.deliv=(sc&&sc.deliv)?sc.deliv.map(function(d){return {id:d.id,trip:d.trip_id,cust:d.customer_id,st:d.status,resi:d.resi||''}}):(sameTrip?prev.deliv:[]);
+  ns.hashes=D[3]?D[3].map(function(h){return h.hash}):(pembeli?[]:prev.hashes||[]);
+  if(!pembeli&&D[3])APP.hashLoaded=true;
+  if(pembeli){
+    ns.customers=[{id:'agg',nama:'Semua pelanggan',hp:''}];ns.lines=[];
+    if(sc&&sc.agg)sc.agg.forEach(function(r){if(r.ordered_qty>0)ns.lines.push({id:'agg-'+r.item_id,trip:cur,cust:'agg',kode:r.code,qty:r.ordered_qty,t:0,src:'agg'})});
+  }
   S=ns;
   SNAP=rowsOf();
 }
+async function switchTrip(tid){
+  for(var n=0;n<40&&(APP.dirty||APP.syncing);n++){if(APP.dirty&&!APP.syncing)await flush();else await new Promise(function(r){setTimeout(r,150)})}
+  S.cur=tid||null;try{if(tid)localStorage.setItem(curKey(),tid)}catch(e){}
+  UI.q='';UI.qo='';
+  if(!tid){render();return}
+  document.body.classList.add('tripbusy');
+  try{await loadAll({only:SCOPED})}catch(e){toast('Belum bisa memuat trip ini. Periksa koneksi, lalu tekan tombol muat ulang.')}
+  document.body.classList.remove('tripbusy');
+  render();window.scrollTo(0,0);
+}
 function sigOf(){return JSON.stringify(SNAP)+S.items.map(function(i){return i.sell}).join(',')}
-async function poll(force){
+async function poll(force,only){
   if(APP.phase!=='app'||APP.syncing||APP.dirty||(!force&&(UI.modal||typing())))return;
   if(!force&&Date.now()-(APP.lastPoll||0)<10000)return;
   if(document.hidden)return;
   APP.lastPoll=Date.now();
-  try{var before=sigOf();await loadAll(true);if(sigOf()!==before)softRender()}catch(e){}
+  try{var before=sigOf();await loadAll({light:true,only:only||null});if(sigOf()!==before)softRender()}catch(e){}
 }
 /* ---------- Realtime: Supabase memberi kabar saat ada perubahan; polling hanya cadangan ---------- */
-var RT={ch:null,ok:false,tm:null,had:false};
+var RT={ch:null,ok:false,tm:null,had:false,pend:{}};
 var POLL_SLOW=45000,POLL_RT=180000;
-function rtPing(){clearTimeout(RT.tm);RT.tm=setTimeout(function(){
+/* Realtime hanya memberi tahu tabel mana yang berubah; yang dimuat ulang cuma tabel itu, untuk trip yang sedang dibuka. */
+function rtPing(tb){if(tb)RT.pend[tb]=1;clearTimeout(RT.tm);RT.tm=setTimeout(rtRun,1500)}
+function rtRun(){
   if(APP.phase!=='app')return;
-  if(APP.syncing||APP.dirty||UI.modal||typing()){RT.tm=setTimeout(rtPing,4000);return}
-  poll(true)},1500)}
-function stopRealtime(){clearTimeout(RT.tm);RT.ok=false;RT.had=false;if(RT.ch&&sb){try{sb.removeChannel(RT.ch)}catch(e){}}RT.ch=null}
+  if(APP.syncing||APP.dirty||UI.modal||typing()){RT.tm=setTimeout(rtRun,4000);return}
+  var t=Object.keys(RT.pend);RT.pend={};
+  if(t.length)poll(true,t)}
+function stopRealtime(){clearTimeout(RT.tm);RT.pend={};RT.ok=false;RT.had=false;if(RT.ch&&sb){try{sb.removeChannel(RT.ch)}catch(e){}}RT.ch=null}
 function startRealtime(){
   stopRealtime();
   if(!sb||!APP.shop||APP.role==='pembeli')return;
   var id=APP.shop.id,ch=sb.channel('shop-'+id);
-  ['trips','items','customers','order_lines','payments','deliveries'].forEach(function(t){
-    ch.on('postgres_changes',{event:'*',schema:'public',table:t,filter:'shop_id=eq.'+id},function(){
+  [['trips','trips'],['trip_pricing','trips'],['items','items'],['customers','customers'],['order_lines','order_lines'],['payments','payments'],['deliveries','deliveries']].forEach(function(m){
+    ch.on('postgres_changes',{event:'*',schema:'public',table:m[0],filter:'shop_id=eq.'+id},function(p){
       if(Date.now()-(APP.lastSave||0)<2500)return; /* perubahan dari kita sendiri */
-      rtPing()})});
+      var r=p&&p.new;if(r&&r.trip_id&&m[0]!=='trips'&&S&&S.cur&&r.trip_id!==S.cur)return; /* trip lain: tidak perlu dimuat */
+      rtPing(m[1])})});
   ch.subscribe(function(st){
     RT.ok=(st==='SUBSCRIBED');
-    if(RT.ok&&RT.had)poll(true); /* tersambung lagi: sinkron sekali */
+    if(RT.ok&&RT.had)poll(true);
     if(RT.ok)RT.had=true});
   RT.ch=ch;
 }
@@ -1001,7 +1055,7 @@ async function afterLogin(){
   await loadAll();
   APP.phase='app';UI.tab=allowedTabs()[0];UI.modal=null;
   draw();
-  startRealtime();
+  try{startRealtime()}catch(e){}
 }
 async function boot(){
   if(!window.supabase){APP.phase='error';APP.err='Pustaka Supabase gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.';draw();return}
@@ -1557,7 +1611,7 @@ document.addEventListener('click',function(e){
     case 'help':UI.modal={type:'help'};render();break;
     case 'help-go':UI.modal=null;goTab(el.dataset.tab);break;
     case 'modal-close':UI.modal=null;render();break;
-    case 'trip-del':arm('trip-del',function(){var t=curTrip();S.items=S.items.filter(function(x){return x.trip!==t.id});S.lines=S.lines.filter(function(x){return x.trip!==t.id});S.payments=S.payments.filter(function(x){return x.trip!==t.id});S.trips=S.trips.filter(function(x){return x.id!==t.id});S.cur=S.trips[0]&&S.trips[0].id;save();UI.modal=null;render();toast('Trip dihapus')});break;
+    case 'trip-del':arm('trip-del',function(){var t=curTrip();S.items=S.items.filter(function(x){return x.trip!==t.id});S.lines=S.lines.filter(function(x){return x.trip!==t.id});S.payments=S.payments.filter(function(x){return x.trip!==t.id});S.deliv=S.deliv.filter(function(x){return x.trip!==t.id});S.trips=S.trips.filter(function(x){return x.id!==t.id});save();UI.modal=null;toast('Trip dihapus');switchTrip(S.trips[0]&&S.trips[0].id)});break;
     case 'step':var inp=document.getElementById(el.dataset.target);if(inp){var mn=inp.min===''?0:+inp.min,v=(parseFloat(inp.value)||0)+(+el.dataset.d);inp.value=Math.max(mn,v);inp.dispatchEvent(new Event('input',{bubbles:true}))}break;
     case 'item-bulk':UI.modal={type:'item-bulk'};UI.focus='b-lines';render();break;
     case 'copy-shop':copyShop(C);break;
@@ -1605,7 +1659,7 @@ document.addEventListener('change',function(e){
   var k=el.dataset.chg;
   if(k==='trip'){
     if(el.value==='__new'){UI.modal={type:'trip-new'};UI.focus='t-nama';render();return}
-    S.cur=el.value;try{localStorage.setItem(curKey(),S.cur)}catch(x){}UI.q='';UI.qo='';render();
+    switchTrip(el.value);
   }
   else if(k==='resi'){var d=S.deliv.find(function(x){return x.cust===el.dataset.id&&x.trip===S.cur});if(d){d.resi=el.value.trim();save();render()}}
   else if(k==='hp'){var c=S.customers.find(function(x){return x.id===el.dataset.id});if(c){c.hp=el.value.trim();save();render()}}
