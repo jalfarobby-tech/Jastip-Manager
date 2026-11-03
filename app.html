@@ -757,7 +757,7 @@ function exportCsv(){
   a.download='tagihan-'+t.nama.replace(/[^\w]+/g,'-').toLowerCase()+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
   toast('File CSV diunduh');
 }
-var ROLE_LABEL={owner:'Pemilik',pencatat:'Pencatat',pembeli:'Pembeli'};
+var ROLE_LABEL={owner:'Pemilik',pencatat:'Pencatat',pembeli:'Petugas belanja'};
 
 var TBL=[
   {n:'trips',k:'id',w:['owner']},
@@ -1545,7 +1545,7 @@ function modalCust(C){
     '<div class="sheet-ft"><button class="btn" data-act="copy-msg" data-id="'+c.c.id+'">Salin nota</button>'+(wa?'<a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(waMsg(c,t))+'">'+ico('wa')+'Kirim lewat WhatsApp</a>':'')+'</div>');
 }
 function modalHelp(){
-  var steps=[['barang','Catat barang','Tempel daftar barang dari story: kode, nama, harga. Satu baris satu barang.'],['tagihan','Masukkan pesanan','Salin chat grup WhatsApp, lalu Impor chat. Kode dan jumlah terbaca otomatis, pesanan masuk ke nama pelanggan.'],['belanja','Belanja','Pembeli mencentang barang yang sudah dibeli. Kalau habis, ketuk barisnya lalu tandai habis.'],['tagihan','Tagih','Ketuk nama pelanggan untuk melihat notanya, catat pembayaran, dan kirim lewat WhatsApp.']];
+  var steps=[['barang','Catat barang','Tempel daftar barang dari story: kode, nama, harga. Satu baris satu barang.'],['tagihan','Masukkan pesanan','Salin chat grup WhatsApp, lalu Impor chat. Kode dan jumlah terbaca otomatis, pesanan masuk ke nama pelanggan.'],['belanja','Belanja','Petugas belanja mencentang barang yang sudah dibeli. Kalau habis, ketuk barisnya lalu tandai habis.'],['tagihan','Tagih','Ketuk nama pelanggan untuk melihat notanya, catat pembayaran, dan kirim lewat WhatsApp.']];
   var ok=allowedTabs();steps=steps.filter(function(s){return ok.indexOf(s[0])>=0});
   return sheet('Cara pakai','<div class="sheet-bd" style="padding-top:0"><div class="list">'+steps.map(function(s,i){
     return '<button class="row" data-act="help-go" data-tab="'+s[0]+'"><span class="lead-n">'+(i+1)+'</span><div class="grow"><div class="t">'+s[1]+'</div><div class="sub">'+s[2]+'</div></div><span class="chev">'+ico('chev')+'</span></button>'}).join('')+'</div></div>'+
@@ -1558,14 +1558,14 @@ function modalSettings(){
     var list=ms==null?'<div class="row"><div class="grow muted small">Memuat…</div></div>':ms.map(function(m){
       var me=m.user_id===APP.user.id;
       return '<div class="row" style="min-height:56px;padding:8px 14px"><div class="grow"><div class="t">'+esc(m.name||(me?'Kamu':'Tanpa nama'))+(me&&m.name?' <span class="muted small">(kamu)</span>':'')+'</div></div>'+
-        (me?'<span class="muted small">'+ROLE_LABEL[m.role]+'</span>':'<select data-oachg="member-role" data-u="'+m.user_id+'" aria-label="Peran" style="width:auto;min-height:40px"><option value="pencatat"'+(m.role==='pencatat'?' selected':'')+'>Pencatat</option><option value="pembeli"'+(m.role==='pembeli'?' selected':'')+'>Pembeli</option><option value="owner"'+(m.role==='owner'?' selected':'')+'>Pemilik</option></select>'+
+        (me?'<span class="muted small">'+ROLE_LABEL[m.role]+'</span>':'<select data-oachg="member-role" data-u="'+m.user_id+'" aria-label="Peran" style="width:auto;min-height:40px"><option value="pencatat"'+(m.role==='pencatat'?' selected':'')+'>Pencatat</option><option value="pembeli"'+(m.role==='pembeli'?' selected':'')+'>Petugas belanja</option><option value="owner"'+(m.role==='owner'?' selected':'')+'>Pemilik</option></select>'+
         '<button class="btn sm text" data-oa="member-del" data-u="'+m.user_id+'">'+(armed('mem-'+m.user_id)?'Yakin hapus?':'Hapus')+'</button>')+'</div>'}).join('');
     mem='<div class="stack"><div class="label">Anggota</div><div class="list">'+list+'</div>'+
       '<form data-mform="1" autocomplete="off" class="stack"><p class="small muted">Karyawan mendaftar dulu di aplikasi ini dengan emailnya. Setelah itu masukkan emailnya di sini dan pilih perannya.</p>'+
       '<label class="field"><span>Email karyawan</span><input name="email" type="email" inputmode="email" autocapitalize="off" required placeholder="nama@email.com"></label>'+
       '<div class="grid2"><label class="field"><span>Nama</span><input name="name" placeholder="Contoh: Dewi"></label>'+
-      '<label class="field"><span>Peran</span><select name="role"><option value="pencatat">Pencatat</option><option value="pembeli">Pembeli</option></select></label></div>'+
-      '<p class="small muted"><b>Pencatat</b>: catat barang, pesanan, dan pembayaran. Tidak bisa melihat kurs, modal, atau untung.<br><b>Pembeli</b>: hanya daftar belanja dan menandai barang yang sudah dibeli.</p>'+
+      '<label class="field"><span>Peran</span><select name="role"><option value="pencatat">Pencatat</option><option value="pembeli">Petugas belanja</option></select></label></div>'+
+      '<p class="small muted"><b>Pencatat</b>: catat barang, pesanan, dan pembayaran. Tidak bisa melihat kurs, modal, atau untung.<br><b>Petugas belanja</b>: orang yang membeli barang di toko. Hanya melihat daftar belanja dan menandai barang yang sudah dibeli.</p>'+
       '<button class="btn" type="submit">Tambah anggota</button></form></div>';
   }
   var payBox=own?'<div class="stack"><div class="label">Info pembayaran</div><label class="field"><span>Rekening atau e-wallet</span><textarea id="pay-info" rows="3" placeholder="BCA 1234567890 a.n. Nama\nDANA 0812xxxxxxx">'+esc(APP.shop.pay||'')+'</textarea><small>Ikut tercantum di pesan WhatsApp kalau pelanggan masih punya sisa tagihan.</small></label><button class="btn" data-oa="payinfo">Simpan info pembayaran</button>'+(APP.noDeliv?'<p class="small" style="color:var(--amber)">Fitur alur kirim belum aktif. Jalankan file SQL tambahan di Supabase (lihat README), lalu muat ulang.</p>':'')+'</div>':'';

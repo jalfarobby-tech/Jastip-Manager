@@ -6,7 +6,7 @@ Dua halaman, tanpa proses build: `index.html` (halaman depan sebelum login) dan 
 ## Peran
 - **Pemilik**: melihat semua, termasuk kurs, modal, dan untung. Mengelola anggota.
 - **Pencatat**: mencatat barang, pesanan, pembayaran. Tidak bisa melihat kurs, modal, atau untung.
-- **Pembeli**: hanya daftar belanja dan menandai barang yang sudah dibeli.
+- **Petugas belanja**: yang membeli barang di toko. Hanya melihat daftar belanja dan menandai barang yang sudah dibeli (di database perannya bernama `pembeli`).
 
 ## Pasang (sekali saja)
 
