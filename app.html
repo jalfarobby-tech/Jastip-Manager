@@ -755,6 +755,19 @@ function fund(){
     if(l.rel===false&&r)l.rel=true;
   });
 }
+/* pembayaran dihapus: pesanan yang belum dibeli kembali menunggu bayar */
+function unfund(cid){
+  var t=trip(S.cur);if(!t||APP.noRel)return 0;
+  var byCode={};S.items.forEach(function(i){if(i.trip===t.id)byCode[i.kode]=i});
+  var paid=0;S.payments.forEach(function(p){if(p.trip===t.id&&p.cust===cid)paid+=p.amt});
+  var cum=0,n=0;
+  S.lines.filter(function(l){return l.trip===t.id&&l.cust===cid&&!l.batal}).sort(function(a,b){return a.t-b.t}).forEach(function(l){
+    var it=byCode[l.kode];if(!it||it.status==='habis')return;
+    cum+=l.qty*unitPrice(t,it);
+    if(cum>paid+0.5&&l.rel!==false&&it.status!=='dibeli'){l.rel=false;n++}
+  });
+  return n;
+}
 function waReady(c,t){
   var s='Halo kak '+c.c.nama+', kabar baik! Barang jastip '+t.nama+' kamu sudah dibeli semua:\n';
   c.rows.forEach(function(r){s+='- '+r.item.kode+' '+r.item.nama+' x'+r.qty+'\n'});
@@ -1193,7 +1206,8 @@ document.addEventListener('click',async function(e){
   var el=e.target.closest('[data-oa]');if(!el)return;
   var a=el.dataset.oa;
   if(a==='mode'){APP.mode=APP.mode==='signup'?'login':'signup';draw()}
-  else if(a==='logout'){doLogout()}
+  else if(a==='logout'){if(APP.phase==='app'){UI.modal={type:'logout'};render()}else doLogout()}
+  else if(a==='logout-yes'){doLogout()}
   else if(a==='recheck'){APP.phase='boot';draw();try{await afterLogin()}catch(err){fail(err)}}
   else if(a==='rate-use'){var k=document.getElementById('t-kurs');if(k&&UI.rateUse){k.value=UI.rateUse;k.dispatchEvent(new Event('input',{bubbles:true}))}}
   else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
@@ -1653,6 +1667,10 @@ function modalCust(C){
     '<label class="field"><span>Nomor WhatsApp</span><input id="hp-'+c.c.id+'" data-chg="hp" data-id="'+c.c.id+'" value="'+esc(c.c.hp)+'" inputmode="tel" placeholder="08xxxxxxxxxx"><small>Tersimpan untuk pesanan berikutnya.</small></label></div>'+
     '<div class="sheet-ft"><button class="btn" data-act="copy-msg" data-id="'+c.c.id+'">Salin nota</button>'+(wa?'<a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(billMsg)+'">'+ico('wa')+(c.hold.length?'Kirim tagihan':'Kirim lewat WhatsApp')+'</a>':'')+'</div>');
 }
+function modalLogout(){
+  var busy=APP.dirty||APP.syncing;
+  return sheet('Keluar dari akun?','<div class="sheet-bd"><p style="margin:0">'+(busy?'Masih ada perubahan yang sedang disimpan. Aplikasi akan menyelesaikannya dulu sebelum keluar.':'Semua data sudah tersimpan otomatis.')+' Untuk masuk lagi kamu perlu email dan kata sandi.</p><div class="small muted">'+esc(APP.user?APP.user.email:'')+'</div></div><div class="sheet-ft"><button class="btn" data-act="modal-close">Batal</button><button class="btn danger" data-oa="logout-yes">'+ico('logout')+'Ya, keluar</button></div>');
+}
 function modalHelp(){
   var steps=[['barang','Catat barang','Tempel daftar barang dari story: kode, nama, harga. Satu baris satu barang.'],['tagihan','Catat pesanan','Tekan Pesanan baru: isi nama, nomor WhatsApp, dan barangnya. Atau impor chat grup WhatsApp. Setelah disimpan, tagihan langsung dikirim lewat WhatsApp.'],['tagihan','Konfirmasi bayar','Kalau pelanggan sudah transfer, buka namanya lalu tekan Sudah dibayar. Pesanannya langsung tampil di daftar belanja.'],['belanja','Belanja','Petugas belanja mencentang barang yang sudah dibeli. Kalau habis, ketuk barisnya lalu tandai habis.']];
   var ok=allowedTabs();steps=steps.filter(function(s){return ok.indexOf(s[0])>=0});
@@ -1694,7 +1712,7 @@ function render(){
   if(!C)body=viewEmpty();
   else body=UI.tab==='home'?viewHome(C):UI.tab==='barang'?viewBarang(C):UI.tab==='belanja'?viewBelanja(C):viewTagihan(C);
   var m=UI.modal,modal='';
-  if(m){var ty=m.type;modal=ty==='trip-new'?modalTrip(false):ty==='trip-edit'?modalTrip(true):ty==='settings'?modalSettings():ty==='help'?modalHelp():!C?'':ty==='item-bulk'?modalBulk(C):ty==='item-new'?modalItem(C,false):ty==='item'?modalItem(C,true):ty==='line-new'?modalOrder(C):ty==='import'?modalImport(C):ty==='shop'?modalShop(C):ty==='cust'?modalCust(C):''}
+  if(m){var ty=m.type;modal=ty==='trip-new'?modalTrip(false):ty==='trip-edit'?modalTrip(true):ty==='settings'?modalSettings():ty==='help'?modalHelp():!C?'':ty==='item-bulk'?modalBulk(C):ty==='item-new'?modalItem(C,false):ty==='item'?modalItem(C,true):ty==='line-new'?modalOrder(C):ty==='import'?modalImport(C):ty==='shop'?modalShop(C):ty==='logout'?modalLogout():ty==='cust'?modalCust(C):''}
   var y=window.scrollY,sy=0,sh=document.querySelector('.sheet-bd');if(sh)sy=sh.scrollTop;
   var fab=!m&&C&&UI.tab==='barang'?'<button class="fab" data-act="item-new" aria-label="Tambah barang">'+ico('plus')+'Barang</button>':!m&&C&&UI.tab==='tagihan'?'<button class="fab" data-act="line-new" aria-label="Tambah pesanan">'+ico('plus')+'Pesanan</button>':'';
   app.innerHTML=viewHeader()+'<div class="shell">'+(C?viewNav(C):'<span></span>')+'<main>'+viewBanner()+body+'</main></div>'+fab+modal;
@@ -1782,7 +1800,7 @@ document.addEventListener('click',function(e){
     case 'pay-full':
       var cc0=C.custs.find(function(c){return c.c.id===id});if(!cc0||cc0.sisa<=0)break;
       S.payments.push({id:uid(),trip:S.cur,cust:id,amt:cc0.sisa,note:'lunas',t:Date.now()});save();render();toast(cc0.hold.length?'Lunas. Pesanan masuk ke daftar belanja.':'Ditandai lunas');break;
-    case 'pay-del':arm('pay-'+id,function(){S.payments=S.payments.filter(function(p){return p.id!==id});save();render()});break;
+    case 'pay-del':arm('pay-'+id,function(){var pd=S.payments.find(function(p){return p.id===id});S.payments=S.payments.filter(function(p){return p.id!==id});var back=pd?unfund(pd.cust):0;save();render();toast(back?'Pembayaran dihapus. '+back+' pesanan kembali menunggu bayar dan keluar dari daftar belanja.':'Pembayaran dihapus')});break;
     case 'copy-msg':var cc=C.custs.find(function(c){return c.c.id===id});if(cc)copy(cc.hold.length?waBill(cc,C.t):waMsg(cc,C.t));break;
   }
 });
