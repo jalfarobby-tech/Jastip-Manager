@@ -554,6 +554,37 @@ input,select,textarea,button,.btn{max-width:100%}
 .utabs{flex-wrap:wrap}
 .srow .main>div{min-width:0}
 details.more summary,.chipf{overflow-wrap:anywhere}
+
+/* ===== halaman Barang, Belanja, Pelanggan: satu bahasa dengan Beranda ===== */
+.btn.primary{color:#fff}
+.page{display:flex;flex-direction:column;gap:18px;padding-top:6px}
+.phero .lux-h{font-size:clamp(1.75rem,7.4vw,2.3rem);margin:20px 0 18px;max-width:none}
+.phero .lux-h .num{font-family:var(--serif);font-variant-numeric:lining-nums}
+@media(min-width:900px){.phero .lux-h{font-size:2.5rem}.phero{padding:24px 28px 22px}.phero::after{left:28px}}
+.pacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.pacts .btn{min-height:46px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);box-shadow:none}
+.pacts .btn:hover{background:rgba(255,255,255,.18);filter:none}
+.pacts .btn.primary{background:var(--gold);border-color:var(--gold);color:#241b00}
+.pacts .btn.primary .i{color:#241b00}
+.pacts .btn .i{color:#fff}
+@media(max-width:520px){.pacts .btn{flex:1 1 100%}}
+.search{background:var(--sunken);border-color:transparent}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.toolbar .search{flex:1 1 240px}.toolbar .utabs{flex:0 1 auto}@media(max-width:700px){.toolbar .utabs{flex:1 1 100%}}
+.cgrid{display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1000px){.cgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ccard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border:1px solid var(--rule);border-radius:20px;background:var(--surface);color:inherit;cursor:pointer;min-height:72px;transition:transform .12s,box-shadow .2s,border-color .2s}
+.ccard:hover{border-color:var(--rule-strong);box-shadow:0 14px 28px -22px rgba(10,16,52,.55)}
+.ccard:active{transform:scale(.99)}
+.ccard .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font:700 .95rem var(--f-body);letter-spacing:.02em}
+.av.ok{background:var(--green-soft);color:var(--green)}.av.warn{background:var(--amber-soft);color:var(--amber)}.av.bad{background:var(--red-soft);color:var(--red)}.av.mut{background:var(--sunken);color:var(--muted)}
+.ccard .cmid{display:flex;flex-direction:column;gap:2px;min-width:0}.ccard .cmid b{font-weight:700;overflow-wrap:anywhere;line-height:1.25}.ccard .cmid small{color:var(--muted);font-size:.85rem;overflow-wrap:anywhere}
+.ccard .cend{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;font-variant-numeric:tabular-nums}.ccard .cend b{font-weight:700}
+.groups .sec>.label{padding:0 4px;font-family:var(--serif);font-weight:400;font-size:1.3rem}
+.groups .sec>.label .num{font-family:var(--f-body);font-size:.82rem;font-weight:600}
+.groups .list{border:1px solid var(--rule);border-radius:20px;padding:2px 16px;background:var(--surface)}
+.groups .list .row{padding:12px 0}
+.quick .btn{white-space:nowrap}
+.srow .main{padding-left:2px}
 </style>
 </head>
 <body>
@@ -1348,7 +1379,8 @@ function viewHome(C){
   var waits=C.items.filter(function(i){return C.per[i.id].wait>0&&i.status!=='habis'&&!topUp(C,i)});
   if(waits.length)rows.push(todoRow(waits.length,'warn','Stok kurang untuk sebagian pesanan',waits.map(function(i){return esc(i.kode)+': '+C.per[i.id].wait+' pcs tidak kebagian'}).join(', '),'tagihan'));
   var left=C.items.filter(function(i){return C.per[i.id].leftover>0});
-  if(left.length)rows.push(todoRow(left.length,'ok','Stok sisa dari belanjaan',left.map(function(i){return esc(i.kode)+': '+C.per[i.id].leftover+' pcs'}).join(', '),null));
+  if(left.length){var heldQ={};C.custs.forEach(function(c){c.hold.forEach(function(h){heldQ[h.item.id]=(heldQ[h.item.id]||0)+h.qty})});
+    rows.push(todoRow(left.length,'ok','Kelebihan barang yang dibeli',left.map(function(i){var p=C.per[i.id];return esc(i.kode)+' '+esc(i.nama)+': dibeli '+i.boughtQty+', terpesan '+p.alloc+', lebih '+p.leftover+' pcs'+(heldQ[i.id]?' ('+heldQ[i.id]+' pcs ada pesanan yang menunggu bayar)':'')}).join('. ')+'. Tawarkan ke pelanggan lain atau simpan sebagai stok. Kalau salah catat, koreksi jumlah beli di Belanja.','belanja'))}
   var piut2=piut.filter(function(c){return !c.hold.length});
   if(piut2.length)rows.push(todoRow(piut2.length,'warn','Pelanggan belum lunas','Sisa '+rp(piut2.reduce(function(a,c){return a+Math.max(0,c.sisa)},0)),'tagihan'));
   if(!C.items.length)rows=['<div class="onb"><p><b>Belum ada barang.</b> Tempel semua barang yang kamu posting di story sekaligus, satu barang per baris.</p><button class="btn primary" data-act="item-bulk">Tempel daftar barang</button></div>'];
@@ -1386,19 +1418,29 @@ function viewHome(C){
 }
 
 /* ---------- Barang ---------- */
+function phero(label,head,pct,stats,acts){
+  return '<section class="lux phero"><div class="lux-top"><span class="lux-trip">'+esc(label)+'</span></div><h1 class="lux-h">'+head+'</h1>'+(pct!=null?'<div class="lux-bar" role="img" aria-label="'+pct+' persen"><i style="width:'+pct+'%"></i></div>':'')+
+    '<dl class="lux-st">'+stats.map(function(x){return '<div><dd>'+x[0]+'</dd><dt>'+x[1]+'</dt></div>'}).join('')+'</dl>'+(acts?'<div class="pacts">'+acts+'</div>':'')+'</section>';
+}
 function viewBarang(C){
-  return '<div class="page-hd"><h1>Barang</h1><div class="acts desk"><button class="btn" data-act="item-bulk">Tempel banyak sekaligus</button><button class="btn primary" data-act="item-new">'+ico('plus')+'Tambah barang</button></div></div>'+
-    '<input id="q-items" data-inp="q" type="search" placeholder="Cari kode, nama, atau toko" aria-label="Cari barang" value="'+esc(UI.q)+'">'+'<button class="btn block mob" data-act="item-bulk">Tempel banyak barang sekaligus</button>'+
-    '<div class="list" id="list">'+itemsList(C)+'</div>';
+  var toko={},ord=0,habis=0;C.items.forEach(function(i){toko[i.toko||'Tanpa toko']=1;if(C.per[i.id].ordered>0)ord++;if(i.status==='habis')habis++});
+  var tn=Object.keys(toko).length;
+  return '<div class="page">'+phero(C.t.nama,C.items.length?'<span class="num">'+C.items.length+'</span> barang dari '+tn+' toko.':'Belum ada barang di trip ini.',null,
+      [[C.items.length,'barang'],[ord,'sudah dipesan'],[habis,'habis']],
+      '<button class="btn primary" data-act="item-new">'+ico('plus')+'Tambah barang</button><button class="btn" data-act="item-bulk">Tempel banyak sekaligus</button>')+
+    '<input id="q-items" class="search" data-inp="q" type="search" placeholder="Cari kode, nama, atau toko" aria-label="Cari barang" value="'+esc(UI.q)+'">'+
+    '<div id="list">'+itemsList(C)+'</div></div>';
 }
 function itemsList(C){
   var q=UI.q.toLowerCase(),t=C.t;
   var arr=C.items.filter(function(i){return !q||(i.kode+' '+i.nama+' '+i.toko).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.kode<b.kode?-1:1});
   if(!arr.length)return '<div class="empty"><p>'+(C.items.length?'Tidak ada barang yang cocok.':'Belum ada barang di trip ini.')+'</p>'+(C.items.length?'':'<button class="btn primary" data-act="item-new">Tambah barang pertama</button>')+'</div>';
-  return arr.map(function(i){var p=C.per[i.id];
-    return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(i.toko||'Tanpa toko')+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?', stok '+i.stok:'')+'</div></div>'+
-      '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':p.ordered+' dipesan')+'</span></div></button>';
-  }).join('');
+  var hq={};C.custs.forEach(function(c){c.hold.forEach(function(h){hq[h.item.id]=(hq[h.item.id]||0)+h.qty})});
+  var g={};arr.forEach(function(i){var k=i.toko||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
+  return '<div class="groups">'+Object.keys(g).sort().map(function(k){
+    return '<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num muted">'+g[k].length+' barang</span></div><div class="list">'+g[k].map(function(i){var p=C.per[i.id];
+      return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?' · stok '+i.stok:'')+'</div></div>'+
+        '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+'</span></div></button>'}).join('')+'</div></div>'}).join('')+'</div>';
 }
 
 function isWaiting(C,l,it){
@@ -1413,9 +1455,13 @@ function viewBelanja(C){
   var f=UI.filter,T=C.tot;
   var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&!pending(C,i)}).length;
   var pct=T.codes?Math.round(doneN/T.codes*100):0,prev=UI.prevPct==null?0:UI.prevPct;UI.prevPct=pct;
-  var h=pageHd('Belanja',S.role!=='pembeli'||true?'<button class="btn sm" data-act="copy-shop">Salin daftar</button>':'')+'<p class="lead">Centang kalau sudah dibeli. Hanya pesanan yang sudah dibayar yang tampil di sini.</p>'+(function(){var wn=S.role==='pembeli'?[]:C.custs.filter(function(c){return c.hold&&c.hold.length});return wn.length?'<button class="waitbar" data-act="stage" data-f="bayar"><span class="wb"><b>'+wn.length+' pelanggan belum bayar</b><span>Pesanannya belum masuk daftar ini. Ketuk untuk melihat siapa saja.</span></span>'+ico('chev')+'</button>':''})()+
-    '<div class="stack" style="gap:8px"><div style="display:flex;justify-content:space-between;gap:10px"><b>'+doneN+' dari '+T.codes+' barang selesai</b><span class="muted num">'+pct+'%</span></div><div class="bar"><i style="--from:'+prev+'%;--to:'+pct+'%;width:'+pct+'%"></i></div></div>'+
-    (T.codes>0&&doneN===T.codes?'<div class="allset"><svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+ICO.check+'</svg><div class="grow"><b>Semua barang sudah beres</b><div class="small muted">Lanjut cek tagihan pelanggan.</div></div><button class="btn sm primary" data-act="tab" data-tab="tagihan">Buka tagihan</button></div>':'');
+  var pendL=C.items.filter(function(i){return pending(C,i)}),pcs=0,tk={};
+  pendL.forEach(function(i){var p=C.per[i.id];pcs+=topUp(C,i)?p.wait:p.alloc;tk[i.toko||'Tanpa toko']=1});
+  var wn=S.role==='pembeli'?[]:C.custs.filter(function(c){return c.hold&&c.hold.length});
+  var head=!T.codes?'Belum ada pesanan yang sudah dibayar.':!pendL.length?'Semua barang sudah dibeli.':'Tinggal <span class="num">'+pendL.length+'</span> barang lagi.';
+  var h='<div class="page">'+phero(C.t.nama,head,T.codes?pct:null,[[pendL.length,'belum dibeli'],[pcs,'pcs perlu dibeli'],[Object.keys(tk).length,'toko']],
+      '<button class="btn" data-act="copy-shop">Salin daftar</button>'+(T.codes>0&&!pendL.length&&S.role!=='pembeli'?'<button class="btn primary" data-act="tab" data-tab="tagihan">Buka pelanggan</button>':''))+
+    (wn.length?'<button class="waitbar" data-act="stage" data-f="bayar"><span class="wb"><b>'+wn.length+' pelanggan belum bayar</b><span>Pesanannya belum masuk daftar ini. Ketuk untuk melihat siapa saja.</span></span>'+ico('chev')+'</button>':'');
   h+='<div class="utabs" role="group" aria-label="Filter"><button data-act="filter" data-f="semua" aria-pressed="'+(f==='semua')+'">Semua</button><button data-act="filter" data-f="belum" aria-pressed="'+(f==='belum')+'">Belum dibeli</button><button data-act="filter" data-f="selesai" aria-pressed="'+(f==='selesai')+'">Selesai</button></div>';
   var groups={};
   C.items.forEach(function(i){if(C.per[i.id].ordered<=0)return;var k=i.toko||'Tanpa toko';(groups[k]=groups[k]||[]).push(i)});
@@ -1428,7 +1474,7 @@ function viewBelanja(C){
   });
   if(gh)h+='<div class="groups">'+gh+'</div>';
   if(!any)h+='<div class="list"><div class="empty">'+(keys.length?(f==='belum'?'Semua barang sudah dibeli.':'Belum ada yang selesai.'):'Belum ada pesanan yang sudah dibayar. Daftar belanja terisi otomatis setelah pelanggan lunas.')+'</div></div>';
-  return h;
+  return h+'</div>';
 }
 function shopRow(C,i){
   var p=C.per[i.id],t=C.t,tu=topUp(C,i),qty=tu?p.wait:(i.status==='dibeli'?i.boughtQty:p.alloc);
@@ -1442,25 +1488,29 @@ function shopRow(C,i){
 
 /* ---------- Tagihan ---------- */
 function statusOf(c){return c.tagihan<=0?st('mut','Belum ada tagihan'):c.sisa<=0?st('ok','Lunas'):c.paid>0?st('warn','Sebagian'):st('bad','Menunggu bayar')}
+function initials(n){var w=String(n||'?').trim().split(/\s+/);return ((w[0]||'?')[0]+(w.length>1?w[1][0]:'')).toUpperCase()}
 function custList(C){
   var q=UI.qo.toLowerCase();
   var list=C.custs.filter(function(c){return (UI.sf?c.stage===UI.sf:(UI.cf==='semua'||c.sisa>0||c.habis.length||c.unreg.length||c.wait.length))&&(!q||c.c.nama.toLowerCase().indexOf(q)>=0)});
   if(!list.length)return '<div class="empty">'+(q?'Tidak ada yang cocok.':UI.sf?'Tidak ada pelanggan di tahap ini.':UI.cf==='semua'?'Belum ada pelanggan di trip ini.':'Semua pelanggan sudah lunas dan tidak ada yang perlu ditindak.')+'</div>';
-  return list.map(function(c){
-    var info=[(c.rows.length+c.hold.length)+' barang'];if(c.habis.length)info.push(c.habis.length+' habis');if(c.wait.length)info.push('stok kurang');if(c.unreg.length)info.push('kode belum terdaftar');if(!APP.noDeliv&&c.stage!=='none'&&S.role!=='pembeli')info.push(stageLabel(c.stage).toLowerCase());
-    return '<button class="row" data-act="cust-open" data-id="'+c.c.id+'"><div class="grow"><div class="t">'+esc(c.c.nama)+'</div><div class="sub">'+info.join(', ')+'</div></div><div class="end"><b>'+(c.tagihan>0&&c.sisa<=0?'Rp'+nf(c.paid):rp(Math.max(0,c.sisa)))+'</b>'+statusOf(c)+'</div></button>';
-  }).join('');
+  return '<div class="cgrid">'+list.map(function(c){
+    var info=[(c.rows.length+c.hold.length)+' barang'];if(c.habis.length)info.push(c.habis.length+' habis');if(c.wait.length)info.push('stok kurang');if(c.unreg.length)info.push('kode belum terdaftar');if(!APP.noDeliv&&c.stage!=='none'&&c.stage!=='bayar'&&S.role!=='pembeli')info.push(stageLabel(c.stage).toLowerCase());
+    var tone=c.tagihan<=0?'mut':c.sisa<=0?'ok':c.paid>0?'warn':'bad';
+    return '<button class="ccard" data-act="cust-open" data-id="'+c.c.id+'"><span class="av '+tone+'" aria-hidden="true">'+esc(initials(c.c.nama))+'</span><span class="cmid"><b>'+esc(c.c.nama)+'</b><small>'+info.join(' · ')+'</small></span><span class="cend"><b>'+(c.tagihan>0&&c.sisa<=0?rp(c.paid):rp(Math.max(0,c.sisa)))+'</b>'+statusOf(c)+'</span></button>';
+  }).join('')+'</div>';
 }
 function viewTagihan(C){
   var tot=C.custs.reduce(function(a,c){a.t+=c.tagihan;a.p+=c.paid;return a},{t:0,p:0});
-  var h='<div class="page-hd"><h1>Pelanggan</h1><div class="acts desk"><button class="btn" data-act="import-open">'+ico('wa')+'Impor chat WA</button><button class="btn primary" data-act="line-new">'+ico('plus')+'Pesanan baru</button></div></div>';
-  h+='<div class="profit"><div class="v">'+rp(Math.max(0,tot.t-tot.p))+'</div><div class="l">belum dibayar dari total tagihan '+rp(tot.t)+'</div></div>';
-  h+='<div class="mob stack" style="gap:10px"><button class="btn primary block" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn block" data-act="import-open">'+ico('wa')+'Impor chat WhatsApp</button></div>';
-  h+='<input id="q-lines" data-inp="qo" type="search" placeholder="Cari nama pelanggan" aria-label="Cari pelanggan" value="'+esc(UI.qo)+'">';
-  h+='<div class="utabs" role="group" aria-label="Filter"><button data-act="cf" data-f="belum" aria-pressed="'+(UI.cf==='belum')+'">Perlu ditindak</button><button data-act="cf" data-f="semua" aria-pressed="'+(UI.cf==='semua')+'">Semua</button></div>';
+  var sisa=Math.max(0,tot.t-tot.p),pct=tot.t>0?Math.max(0,Math.min(100,Math.round(tot.p/tot.t*100))):0;
+  var nC=C.custs.filter(function(c){return c.tagihan>0||c.rows.length||c.hold.length}).length,nW=C.custs.filter(function(c){return c.hold.length}).length,nL=C.custs.filter(function(c){return c.tagihan>0&&c.sisa<=0}).length;
+  var head=!tot.t?'Belum ada tagihan di trip ini.':sisa>0?'<span class="num">'+rp(sisa)+'</span> belum dibayar.':'Semua tagihan sudah lunas.';
+  var h='<div class="page">'+phero(C.t.nama,head,tot.t?pct:null,[[nC,'pelanggan'],[nW,'menunggu bayar'],[nL,'lunas']],
+    '<button class="btn primary" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn" data-act="import-open">'+ico('wa')+'Impor chat WA</button>');
+  if(!C.custs.length)return h+'<div class="empty">Belum ada pelanggan di trip ini. Tekan Pesanan baru atau impor chat WhatsApp.</div></div>';
+  h+='<div class="toolbar"><input id="q-lines" class="search" data-inp="qo" type="search" placeholder="Cari nama pelanggan" aria-label="Cari pelanggan" value="'+esc(UI.qo)+'">'+
+    '<div class="utabs" role="group" aria-label="Filter"><button data-act="cf" data-f="belum" aria-pressed="'+(UI.cf==='belum')+'">Perlu ditindak</button><button data-act="cf" data-f="semua" aria-pressed="'+(UI.cf==='semua')+'">Semua</button></div></div>';
   if(UI.sf)h+='<button class="chipf" data-act="stage" data-f="">Tahap: '+esc(stageLabel(UI.sf))+' <span aria-hidden="true">✕</span><span class="sr">hapus filter</span></button>';
-  if(!C.custs.length)return h+'<div class="empty">Belum ada pelanggan di trip ini. Impor chat WhatsApp atau tambah pesanan.</div>';
-  return h+'<div class="list" id="list">'+custList(C)+'</div>';
+  return h+'<div id="list">'+custList(C)+'</div></div>';
 }
 
 /* ---------- lembar isian ---------- */
