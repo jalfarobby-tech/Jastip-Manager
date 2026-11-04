@@ -585,6 +585,15 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .groups .list .row{padding:12px 0}
 .quick .btn{white-space:nowrap}
 .srow .main{padding-left:2px}
+
+/* ===== desktop: tanpa panel besar kosong ===== */
+@media(min-width:900px){
+  .shell{max-width:1320px;margin:0 auto;grid-template-columns:210px minmax(0,1fr);gap:32px}
+  main{background:transparent;box-shadow:none;border-radius:0;padding:0 0 60px;min-height:0}
+  main>:first-child{margin-top:6px}
+}
+.card .list{border:0;padding:0;background:transparent;border-radius:0}.card .list .row{padding:12px 0;border:0;border-bottom:1.5px solid var(--rule);border-radius:0;background:transparent}.card .list .row:last-child{border-bottom:0}
+#i-fix{font-weight:700}
 </style>
 </head>
 <body>
@@ -610,7 +619,7 @@ var UI={tab:'home',q:'',qo:'',filter:'belum',open:{},preview:null,modal:null,arm
 function trip(id){return S.trips.find(function(t){return t.id===id})}
 function curTrip(){return trip(S.cur)||S.trips[0]||null}
 function roundUp(v,step){step=step||1;return Math.ceil(v/step-1e-9)*step}
-function unitPrice(t,it){if(t.kurs>0)return roundUp(it.harga*t.kurs*(1+(t.feePct||0)/100)+(+t.feeFlat||0),+t.round||1);return +it.sell||0}
+function unitPrice(t,it){if(it.fix>0)return +it.fix;if(t.kurs>0)return roundUp(it.harga*t.kurs*(1+(t.feePct||0)/100)+(+t.feeFlat||0),+t.round||1);return +it.sell||0}
 function unitCost(t,it){return it.harga*t.kurs}
 
 function calc(tid){
@@ -886,7 +895,7 @@ function rowsOf(){
   if(R.trip_pricing)S.trips.forEach(function(t){R.trip_pricing[t.id]={trip_id:t.id,shop_id:sid,rate:+t.kurs||0,fee_pct:+t.feePct||0,fee_flat:Math.round(+t.feeFlat||0),round_to:Math.max(1,Math.round(+t.round||1)),extra_cost:Math.round(+t.biayaLain||0)}});
   if(R.customers)S.customers.forEach(function(c){R.customers[c.id]={id:c.id,shop_id:sid,name:c.nama,phone:c.hp||''}});
   if(R.items)S.items.forEach(function(i){R.items[i.id]={id:i.id,shop_id:sid,trip_id:i.trip,code:i.kode,name:i.nama,store:i.toko||'',price:+i.harga||0,
-    stock_cap:(i.stok===''||i.stok==null||isNaN(i.stok))?null:+i.stok,status:i.status,bought_qty:i.boughtQty==null?null:+i.boughtQty}});
+    stock_cap:(i.stok===''||i.stok==null||isNaN(i.stok))?null:+i.stok,status:i.status,bought_qty:i.boughtQty==null?null:+i.boughtQty};if(!APP.noFix)R.items[i.id].sell_fixed=i.fix>0?Math.round(i.fix):null});
   if(R.item_purchases)S.items.forEach(function(i){if(i.status==='dibeli'&&i.aktual!=null)R.item_purchases[i.id]={item_id:i.id,shop_id:sid,actual_price:+i.aktual||0}});
   if(R.order_lines)S.lines.forEach(function(l){R.order_lines[l.id]={id:l.id,shop_id:sid,trip_id:l.trip,customer_id:l.cust,code:l.kode,qty:l.qty,ordered_at:iso(l.t),cancelled:!!l.batal,source:l.src||'manual'};if(!APP.noRel)R.order_lines[l.id].released=l.rel!==false});
   if(R.payments)S.payments.forEach(function(p){R.payments[p.id]={id:p.id,shop_id:sid,trip_id:p.trip,customer_id:p.cust,amount:Math.round(p.amt),note:p.note||'',paid_at:iso(p.t)}});
@@ -999,7 +1008,9 @@ function scopedFetch(tid,need){
   var byTrip=function(q){return q.eq('trip_id',tid)};
   if(need('items')){
     p.push((async function(){
-      out.items=await fetchAll('items',pembeli?'id,trip_id,code,name,store,price,stock_cap,status,bought_qty':'id,trip_id,code,name,store,price,sell_price,stock_cap,status,bought_qty','id',byTrip);
+      var icols='id,trip_id,code,name,store,price,sell_price,stock_cap,status,bought_qty';
+      if(pembeli)out.items=await fetchAll('items','id,trip_id,code,name,store,price,stock_cap,status,bought_qty','id',byTrip);
+      else{try{out.items=await fetchAll('items',icols+(APP.noFix?'':',sell_fixed'),'id',byTrip)}catch(e){if(APP.noFix)throw e;APP.noFix=true;out.items=await fetchAll('items',icols,'id',byTrip)}}
       out.pur=[];
       if(own||pembeli){
         var ids=out.items.filter(function(i){return i.status==='dibeli'}).map(function(i){return i.id});
@@ -1027,6 +1038,7 @@ async function loadAll(o){
   var want=null;try{want=localStorage.getItem(curKey())}catch(e){}
   if(!only||only.indexOf('deliveries')>=0)APP.noDeliv=false;
   if(!only||only.indexOf('order_lines')>=0)APP.noRel=false;
+  if(!only||only.indexOf('items')>=0)APP.noFix=false;
   var guess=prev.cur||want||null;
   var needTrips=need('trips');
   var tripsP=needTrips?fetchAll('trips','id,name,currency,deadline,created_at','id',byShop):Promise.resolve(null);
@@ -1055,7 +1067,7 @@ async function loadAll(o){
   var sameTrip=prev.cur===cur;
   var pu={};if(sc&&sc.pur)sc.pur.forEach(function(p){pu[p.item_id]=+p.actual_price});
   if(sc&&sc.items){
-    ns.items=sc.items.map(function(i){var x={id:i.id,trip:i.trip_id,kode:i.code,nama:i.name,toko:i.store||'',harga:+i.price,stok:i.stock_cap==null?'':+i.stock_cap,status:i.status,sell:i.sell_price==null?null:+i.sell_price};
+    ns.items=sc.items.map(function(i){var x={id:i.id,trip:i.trip_id,kode:i.code,nama:i.name,toko:i.store||'',harga:+i.price,stok:i.stock_cap==null?'':+i.stock_cap,status:i.status,sell:i.sell_price==null?null:+i.sell_price,fix:i.sell_fixed==null?null:+i.sell_fixed};
       if(i.bought_qty!=null)x.boughtQty=+i.bought_qty;if(pu[i.id]!=null)x.aktual=pu[i.id];return x});
   }else ns.items=sameTrip?prev.items:[];
   ns.lines=(sc&&sc.lines)?sc.lines.map(function(l){return {id:l.id,trip:l.trip_id,cust:l.customer_id,kode:l.code,qty:l.qty,t:Date.parse(l.ordered_at),batal:!!l.cancelled,src:l.source,rel:l.released!==false}}):(sameTrip?prev.lines:[]);
@@ -1411,7 +1423,7 @@ function viewHome(C){
   if(owner){
     var list=C.items.filter(function(i){return C.per[i.id].ordered>0}).map(function(i){var p=C.per[i.id];
       return '<div class="row"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">Terjual '+p.alloc+' pcs, omzet '+rp(p.revenue)+'</div></div><div class="end">'+(i.status==='dibeli'?'<b>'+rp(p.profit)+'</b><span class="small muted">untung</span>':'<span class="small muted">belum dibeli</span>')+'</div></div>'}).join('');
-    h+='<details class="more"><summary>Untung per barang</summary>'+(list||'<div class="empty">Belum ada pesanan.</div>')+'<p class="small muted" style="margin-top:10px">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p></details>';
+    h+='<section class="card"><h2 class="sh">Untung per barang</h2><div class="list">'+(list||'<div class="empty">Belum ada pesanan.</div>')+'</div><p class="small muted" style="margin:10px 0 0">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p></section>';
   }
   h+='</div></div>';
   return h;
@@ -1440,7 +1452,7 @@ function itemsList(C){
   return '<div class="groups">'+Object.keys(g).sort().map(function(k){
     return '<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num muted">'+g[k].length+' barang</span></div><div class="list">'+g[k].map(function(i){var p=C.per[i.id];
       return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?' · stok '+i.stok:'')+'</div></div>'+
-        '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+'</span></div></button>'}).join('')+'</div></div>'}).join('')+'</div>';
+        '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+(i.fix>0?'<span class="small muted">harga sendiri</span>':'')+'</span></div></button>'}).join('')+'</div></div>'}).join('')+'</div>';
 }
 
 function isWaiting(C,l,it){
@@ -1522,12 +1534,16 @@ function modalItem(C,edit){
   var t=C.t,i=edit?S.items.find(function(x){return x.id===UI.modal.id}):{kode:nextCode(C),nama:'',toko:S.lastToko||'',harga:'',stok:''};
   if(!i)return '';
   var hasStok=i.stok!==''&&i.stok!=null;
+  var hasFix=i.fix>0;
   return sheet(edit?'Ubah barang':'Tambah barang','<form data-form="'+(edit?'item-edit':'item-add')+'" autocomplete="off"><div class="sheet-bd">'+(edit?'':'<button type="button" class="btn text sm" style="align-self:flex-start" data-act="item-bulk">Punya banyak barang? Tempel sekaligus</button>')+
     '<label class="field"><span>Kode barang</span><input id="i-kode" name="kode" class="upper" required autocapitalize="characters" autocomplete="off" placeholder="Contoh: A12" value="'+esc(i.kode)+'"></label>'+
     '<label class="field"><span>Nama barang</span><input id="i-nama" name="nama" required autocomplete="off" placeholder="Contoh: Sunscreen 50ml" value="'+esc(i.nama)+'"></label>'+
     '<label class="field"><span>Toko</span><input id="i-toko" name="toko" list="tokoList" autocomplete="off" placeholder="Tempat membeli" value="'+esc(i.toko)+'"></label>'+tokoList(C)+
     '<label class="field"><span>Harga di toko ('+esc(t.mata)+')</span><input id="i-harga" name="harga" type="number" inputmode="decimal" min="0" step="any" required data-live="price" placeholder="0" value="'+esc(i.harga)+'"></label>'+
+    '<div class="field"><span>Harga jual ke pelanggan</span><div class="utabs" role="group" aria-label="Cara menentukan harga jual"><button type="button" data-act="pmode" data-m="auto" aria-pressed="'+(!hasFix)+'">Otomatis</button><button type="button" data-act="pmode" data-m="manual" aria-pressed="'+hasFix+'"'+(APP.noFix?' disabled':'')+'>Atur sendiri</button></div><input type="hidden" id="i-pmode" name="pmode" value="'+(hasFix?'manual':'auto')+'"></div>'+
     '<div class="hint" id="price-preview">Harga jual ke pelanggan: isi harga dulu</div>'+
+    '<label class="field" id="fix-box"'+(hasFix?'':' hidden')+'><span>Harga jual (Rp per pcs)</span><input id="i-fix" name="fix" type="number" inputmode="numeric" min="1" step="any" data-live="price" placeholder="Contoh: 150000" value="'+(hasFix?esc(i.fix):'')+'"><small>Dipakai apa adanya, tanpa kurs, fee, dan pembulatan trip.</small></label>'+
+    (APP.noFix?'<div class="hint">Pilihan harga sendiri belum aktif. Jalankan file database/jalankan-semua.sql di Supabase satu kali, lalu muat ulang.</div>':'')+
     '<details class="opt"'+(hasStok?' open':'')+'><summary>Opsi lain</summary><label class="field" style="margin-top:6px"><span>Batas stok</span><input id="i-stok" name="stok" type="number" inputmode="numeric" min="0" placeholder="Kosongkan jika tidak dibatasi" value="'+esc(i.stok)+'"><small>Pesanan yang melebihi batas ditandai tidak kebagian.</small></label></details></div>'+
     '<div class="sheet-ft">'+(edit?'<button type="button" class="btn danger ghost-del" data-act="item-del" data-id="'+i.id+'">'+(armed('del-'+i.id)?'Yakin hapus?':'Hapus')+'</button><button class="btn primary" type="submit">Simpan</button>':'<button class="btn" type="submit" name="again" value="1">Simpan & tambah lagi</button><button class="btn primary" type="submit">Simpan</button>')+'</div></form>');
 }
@@ -1772,7 +1788,23 @@ function render(){
   if(UI.focus){var f=document.getElementById(UI.focus);UI.focus=null;if(f)f.focus()}
   if(m){livePrice();liveCode();liveTrip();liveBulk();if(m.type==='trip-new'||m.type==='trip-edit')rateFill(false);var te=document.getElementById('toast');if(te&&!te.hidden&&te.querySelector('button'))te.hidden=true}
 }
-function livePrice(){var el=document.getElementById('price-preview');if(!el||!curTrip())return;if(S.role!=='owner'){el.innerHTML='Harga jual dihitung otomatis setelah disimpan';return}var h=parseFloat(val('i-harga'));el.innerHTML=isNaN(h)?'Harga jual ke pelanggan: isi harga dulu':'Harga jual ke pelanggan: <b>'+rp(unitPrice(curTrip(),{harga:h}))+'</b> per pcs'}
+function fixOf(fd){
+  if(fd.pmode!=='manual')return null;
+  var f=Math.round(parseFloat(fd.fix));
+  if(!(f>0)){toast('Isi harga jual, atau pilih Otomatis');return false}
+  return f;
+}
+function livePrice(){
+  var el=document.getElementById('price-preview');if(!el||!curTrip())return;
+  var manual=val('i-pmode')==='manual',own=S.role==='owner',t=curTrip(),h=parseFloat(val('i-harga'));
+  if(manual){
+    var f=parseFloat(val('i-fix'));
+    if(!(f>0)){el.innerHTML='Isi harga jual yang kamu mau di bawah';return}
+    if(own&&t.kurs>0&&!isNaN(h)){var cost=h*t.kurs,gain=f-cost;el.innerHTML='Harga jual <b>'+rp(f)+'</b> per pcs. Modal '+rp(cost)+', '+(gain>=0?'untung <b>'+rp(gain)+'</b>':'<b style="color:var(--bad)">rugi '+rp(-gain)+'</b>')+(cost>0?' ('+Math.round(gain/cost*100)+'% dari modal)':'');return}
+    el.innerHTML='Harga jual <b>'+rp(f)+'</b> per pcs';return}
+  if(!own){el.innerHTML='Harga jual dihitung otomatis setelah disimpan';return}
+  el.innerHTML=isNaN(h)?'Harga jual ke pelanggan: isi harga dulu':'Harga jual otomatis: <b>'+rp(unitPrice(t,{harga:h}))+'</b> per pcs (kurs dan fee trip)';
+}
 function liveCode(){var el=document.getElementById('code-preview');if(!el||!curTrip())return;var k=norm(val('m-kode')),it=S.items.find(function(i){return i.trip===S.cur&&i.kode===k});
   el.innerHTML=!k?'Ketik kode untuk melihat nama barang':it?esc(it.nama)+(unitPrice(curTrip(),it)>0?' · <b>'+rp(unitPrice(curTrip(),it))+'</b>':''):'Kode belum terdaftar (tetap bisa disimpan)'}
 function liveTrip(){var el=document.getElementById('trip-preview');if(!el)return;var kurs=parseFloat(val('t-kurs')),mata=(val('t-mata')||'').toUpperCase()||'?';
@@ -1811,6 +1843,7 @@ document.addEventListener('click',function(e){
     case 'modal-close':UI.modal=null;render();break;
     case 'trip-del':arm('trip-del',function(){var t=curTrip();S.items=S.items.filter(function(x){return x.trip!==t.id});S.lines=S.lines.filter(function(x){return x.trip!==t.id});S.payments=S.payments.filter(function(x){return x.trip!==t.id});S.deliv=S.deliv.filter(function(x){return x.trip!==t.id});S.trips=S.trips.filter(function(x){return x.id!==t.id});save();UI.modal=null;toast('Trip dihapus');switchTrip(S.trips[0]&&S.trips[0].id)});break;
     case 'step':var inp=document.getElementById(el.dataset.target);if(inp){var mn=inp.min===''?0:+inp.min,v=(parseFloat(inp.value)||0)+(+el.dataset.d);inp.value=Math.max(mn,v);inp.dispatchEvent(new Event('input',{bubbles:true}))}break;
+    case 'pmode':if(el.disabled)break;var pm=el.dataset.m,hm=document.getElementById('i-pmode'),fb=document.getElementById('fix-box');if(hm)hm.value=pm;if(fb)fb.hidden=pm!=='manual';el.parentNode.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',String(b===el))});livePrice();if(pm==='manual'){var fi=document.getElementById('i-fix');if(fi)fi.focus()}break;
     case 'item-bulk':UI.modal={type:'item-bulk'};UI.focus='b-lines';render();break;
     case 'copy-shop':copyShop(C);break;
     case 'item-new':UI.modal={type:'item-new'};UI.focus='i-kode';render();break;
@@ -1873,6 +1906,7 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('input',function(e){
   var el=e.target;
+  if(el.closest&&el.closest('#ord-rows'))liveOrder();
   if(el.dataset&&el.dataset.live){livePrice();liveCode();liveTrip();liveBulk();liveOrder();liveOrdName()}
   if(el.dataset&&el.dataset.oainp==='mata'){var tx=document.getElementById('t-mata-txt');if(tx)tx.textContent=el.value.toUpperCase()||'mata uang';clearTimeout(UI.rt);UI.rt=setTimeout(function(){rateFill(true)},500)}
   if(!el.dataset)return;
@@ -1896,11 +1930,13 @@ document.addEventListener('submit',function(e){
     var kode=norm(fd.kode);if(!kode)return;
     if(S.items.some(function(i){return i.trip===t.id&&i.kode===kode})){toast('Kode '+kode+' sudah dipakai di trip ini');return}
     var toko=(fd.toko||'').trim();if(toko)S.lastToko=toko;
-    S.items.push({id:uid(),trip:t.id,kode:kode,nama:fd.nama.trim(),toko:toko,harga:parseFloat(fd.harga)||0,stok:fd.stok===''?'':parseInt(fd.stok,10),status:'belum'});
+    var fx=fixOf(fd);if(fx===false)return;
+    S.items.push({id:uid(),trip:t.id,kode:kode,nama:fd.nama.trim(),toko:toko,harga:parseFloat(fd.harga)||0,stok:fd.stok===''?'':parseInt(fd.stok,10),status:'belum',fix:fx});
     save();UI.modal=again?{type:'item-new'}:null;if(again)UI.focus='i-kode';render();toast('Barang '+kode+' disimpan');
   }else if(kind==='item-edit'){
     var it=S.items.find(function(x){return x.id===UI.modal.id}),nk=norm(fd.kode);
     if(S.items.some(function(i){return i.trip===it.trip&&i.kode===nk&&i.id!==it.id})){toast('Kode '+nk+' sudah dipakai barang lain');return}
+    var fx2=fixOf(fd);if(fx2===false)return;it.fix=fx2;
     var oldK=it.kode;it.kode=nk;it.nama=fd.nama.trim();it.toko=(fd.toko||'').trim();it.harga=parseFloat(fd.harga)||0;it.stok=fd.stok===''?'':parseInt(fd.stok,10);
     if(oldK!==nk)S.lines.forEach(function(l){if(l.trip===it.trip&&l.kode===oldK)l.kode=nk});
     save();UI.modal=null;render();toast('Barang diperbarui');
