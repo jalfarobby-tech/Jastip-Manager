@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /Jastip-Manager/$
+Allow: /Jastip-Manager/index.html
+Allow: /Jastip-Manager/og-image.png
+Disallow: /Jastip-Manager/app.html
+
+Sitemap: https://jalfarobby-tech.github.io/Jastip-Manager/sitemap.xml
