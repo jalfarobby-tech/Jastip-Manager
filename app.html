@@ -594,6 +594,19 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 }
 .card .list{border:0;padding:0;background:transparent;border-radius:0}.card .list .row{padding:12px 0;border:0;border-bottom:1.5px solid var(--rule);border-radius:0;background:transparent}.card .list .row:last-child{border-bottom:0}
 #i-fix{font-weight:700}
+
+/* ===== belanja per toko dan lantai ===== */
+.tchips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tchips::-webkit-scrollbar{display:none}
+.tchips button{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink);font:700 .9rem var(--f-body,inherit);cursor:pointer;white-space:nowrap}
+.tchips button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff;background-image:linear-gradient(180deg,#2536b4,#16227a)}
+.tchips .tn{min-width:22px;height:22px;padding:0 6px;border-radius:99px;display:grid;place-items:center;background:var(--amber-soft);color:var(--amber);font-size:.78rem}
+.tchips .tn.ok{background:var(--green-soft);color:var(--green)}
+.tchips button[aria-pressed="true"] .tn{background:rgba(255,255,255,.2);color:#fff}
+.area{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px -16px 2px;padding:8px 16px;background:var(--sunken);font-weight:700;font-size:.82rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.area:first-child{margin-top:0;border-radius:18px 18px 0 0}
+.area span{font-weight:600;text-transform:none;letter-spacing:0}
+.groups .list>.area:first-child{margin-top:-2px}
 </style>
 </head>
 <body>
@@ -621,6 +634,14 @@ function curTrip(){return trip(S.cur)||S.trips[0]||null}
 function roundUp(v,step){step=step||1;return Math.ceil(v/step-1e-9)*step}
 function unitPrice(t,it){if(it.fix>0)return +it.fix;if(t.kurs>0)return roundUp(it.harga*t.kurs*(1+(t.feePct||0)/100)+(+t.feeFlat||0),+t.round||1);return +it.sell||0}
 function unitCost(t,it){return it.harga*t.kurs}
+/* toko dan lantai/area disimpan satu kolom: "Nama Toko › Lantai 2" */
+var SEP=' › ';
+function tokoOf(i){var s=String(i.toko||''),k=s.indexOf(SEP);return (k<0?s:s.slice(0,k)).trim()}
+function areaOf(i){var s=String(i.toko||''),k=s.indexOf(SEP);return k<0?'':s.slice(k+SEP.length).trim()}
+function joinStore(t,a){t=String(t||'').trim();a=String(a||'').trim();return a?(t||'Tanpa toko')+SEP+a:t}
+function normStore(s){return String(s||'').replace(/\s*›\s*|\s+\/\s+|\s*\|\s*/g,SEP).trim()}
+function natCmp(a,b){return String(a).localeCompare(String(b),'id',{numeric:true,sensitivity:'base'})}
+function areaCmp(a,b){return a===b?0:!a?1:!b?-1:natCmp(a,b)}
 
 function calc(tid){
   var t=trip(tid);
@@ -1370,7 +1391,7 @@ function viewHome(C){
   var t=C.t,T=C.tot,owner=S.role==='owner';
   var days=t.deadline?Math.ceil((new Date(t.deadline+'T23:59:59')-Date.now())/864e5):null;
   var rows=[],byToko={},nBelum=0;
-  C.items.forEach(function(i){if(pending(C,i)){var k=i.toko||'Tanpa toko';byToko[k]=(byToko[k]||0)+1;nBelum++}});
+  C.items.forEach(function(i){if(pending(C,i)){var k=tokoOf(i)||'Tanpa toko';byToko[k]=(byToko[k]||0)+1;nBelum++}});
   var nLines=S.lines.filter(function(l){return l.trip===t.id&&!l.batal}).length;
   var piut=C.custs.filter(function(c){return c.sisa>0&&c.tagihan>0}),tagih=C.custs.reduce(function(a,c){return a+Math.max(0,c.sisa)},0);
   var siapList=C.custs.filter(function(c){return c.stage==='siap'}),waitL=C.custs.filter(function(c){return c.hold.length}),waitSum=waitL.reduce(function(a,c){return a+Math.max(0,c.sisa)},0);
@@ -1435,7 +1456,7 @@ function phero(label,head,pct,stats,acts){
     '<dl class="lux-st">'+stats.map(function(x){return '<div><dd>'+x[0]+'</dd><dt>'+x[1]+'</dt></div>'}).join('')+'</dl>'+(acts?'<div class="pacts">'+acts+'</div>':'')+'</section>';
 }
 function viewBarang(C){
-  var toko={},ord=0,habis=0;C.items.forEach(function(i){toko[i.toko||'Tanpa toko']=1;if(C.per[i.id].ordered>0)ord++;if(i.status==='habis')habis++});
+  var toko={},ord=0,habis=0;C.items.forEach(function(i){toko[tokoOf(i)||'Tanpa toko']=1;if(C.per[i.id].ordered>0)ord++;if(i.status==='habis')habis++});
   var tn=Object.keys(toko).length;
   return '<div class="page">'+phero(C.t.nama,C.items.length?'<span class="num">'+C.items.length+'</span> barang dari '+tn+' toko.':'Belum ada barang di trip ini.',null,
       [[C.items.length,'barang'],[ord,'sudah dipesan'],[habis,'habis']],
@@ -1448,11 +1469,16 @@ function itemsList(C){
   var arr=C.items.filter(function(i){return !q||(i.kode+' '+i.nama+' '+i.toko).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.kode<b.kode?-1:1});
   if(!arr.length)return '<div class="empty"><p>'+(C.items.length?'Tidak ada barang yang cocok.':'Belum ada barang di trip ini.')+'</p>'+(C.items.length?'':'<button class="btn primary" data-act="item-new">Tambah barang pertama</button>')+'</div>';
   var hq={};C.custs.forEach(function(c){c.hold.forEach(function(h){hq[h.item.id]=(hq[h.item.id]||0)+h.qty})});
-  var g={};arr.forEach(function(i){var k=i.toko||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
-  return '<div class="groups">'+Object.keys(g).sort().map(function(k){
-    return '<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num muted">'+g[k].length+' barang</span></div><div class="list">'+g[k].map(function(i){var p=C.per[i.id];
-      return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?' · stok '+i.stok:'')+'</div></div>'+
-        '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+(i.fix>0?'<span class="small muted">harga sendiri</span>':'')+'</span></div></button>'}).join('')+'</div></div>'}).join('')+'</div>';
+  var hq={};C.custs.forEach(function(c){c.hold.forEach(function(h){hq[h.item.id]=(hq[h.item.id]||0)+h.qty})});
+  var g={};arr.forEach(function(i){var k=tokoOf(i)||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
+  function brow(i){var p=C.per[i.id];
+    return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?' · stok '+i.stok:'')+'</div></div>'+
+      '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+(i.fix>0?'<span class="small muted">harga sendiri</span>':'')+'</span></div></button>'}
+  return '<div class="groups">'+Object.keys(g).sort(natCmp).map(function(k){
+    var byA={};g[k].forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
+    var as=Object.keys(byA).sort(areaCmp),multi=as.length>1||as[0]!=='';
+    return '<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num muted">'+g[k].length+' barang</span></div><div class="list">'+as.map(function(a){
+      return (multi?'<div class="area">'+esc(a||'Tanpa lantai/area')+'<span>'+byA[a].length+'</span></div>':'')+byA[a].map(brow).join('')}).join('')+'</div></div>'}).join('')+'</div>';
 }
 
 function isWaiting(C,l,it){
@@ -1468,7 +1494,7 @@ function viewBelanja(C){
   var doneN=C.items.filter(function(i){return C.per[i.id].ordered>0&&!pending(C,i)}).length;
   var pct=T.codes?Math.round(doneN/T.codes*100):0,prev=UI.prevPct==null?0:UI.prevPct;UI.prevPct=pct;
   var pendL=C.items.filter(function(i){return pending(C,i)}),pcs=0,tk={};
-  pendL.forEach(function(i){var p=C.per[i.id];pcs+=topUp(C,i)?p.wait:p.alloc;tk[i.toko||'Tanpa toko']=1});
+  pendL.forEach(function(i){var p=C.per[i.id];pcs+=topUp(C,i)?p.wait:p.alloc;tk[tokoOf(i)||'Tanpa toko']=1});
   var wn=S.role==='pembeli'?[]:C.custs.filter(function(c){return c.hold&&c.hold.length});
   var head=!T.codes?'Belum ada pesanan yang sudah dibayar.':!pendL.length?'Semua barang sudah dibeli.':'Tinggal <span class="num">'+pendL.length+'</span> barang lagi.';
   var h='<div class="page">'+phero(C.t.nama,head,T.codes?pct:null,[[pendL.length,'belum dibeli'],[pcs,'pcs perlu dibeli'],[Object.keys(tk).length,'toko']],
@@ -1476,13 +1502,24 @@ function viewBelanja(C){
     (wn.length?'<button class="waitbar" data-act="stage" data-f="bayar"><span class="wb"><b>'+wn.length+' pelanggan belum bayar</b><span>Pesanannya belum masuk daftar ini. Ketuk untuk melihat siapa saja.</span></span>'+ico('chev')+'</button>':'');
   h+='<div class="utabs" role="group" aria-label="Filter"><button data-act="filter" data-f="semua" aria-pressed="'+(f==='semua')+'">Semua</button><button data-act="filter" data-f="belum" aria-pressed="'+(f==='belum')+'">Belum dibeli</button><button data-act="filter" data-f="selesai" aria-pressed="'+(f==='selesai')+'">Selesai</button></div>';
   var groups={};
-  C.items.forEach(function(i){if(C.per[i.id].ordered<=0)return;var k=i.toko||'Tanpa toko';(groups[k]=groups[k]||[]).push(i)});
-  var keys=Object.keys(groups).sort(),any=false,gh='';
+  C.items.forEach(function(i){if(C.per[i.id].ordered<=0)return;var k=tokoOf(i)||'Tanpa toko';(groups[k]=groups[k]||[]).push(i)});
+  var keys=Object.keys(groups).sort(natCmp),any=false,gh='';
+  if(UI.tf&&!groups[UI.tf])UI.tf='';
+  if(keys.length>1){
+    h+='<div class="tchips" role="group" aria-label="Pilih toko"><button data-act="tokof" data-f="" aria-pressed="'+(!UI.tf)+'">Semua toko</button>'+keys.map(function(k,ix){var n=groups[k].filter(function(i){return pending(C,i)}).length;
+      return '<button data-act="tokof" data-f="'+ix+'" aria-pressed="'+(UI.tf===k)+'">'+esc(k)+(n?'<span class="tn">'+n+'</span>':'<span class="tn ok">✓</span>')+'</button>'}).join('')+'</div>';
+  }
   keys.forEach(function(k){
-    var arr=groups[k].sort(function(a,b){return ((!pending(C,a))-(!pending(C,b)))||(a.kode<b.kode?-1:1)}),done=arr.filter(function(i){return !pending(C,i)}).length;
+    if(UI.tf&&UI.tf!==k)return;
+    var arr=groups[k],done=arr.filter(function(i){return !pending(C,i)}).length;
     var vis=arr.filter(function(i){return f==='semua'||(f==='belum'?pending(C,i):!pending(C,i))});
     if(!vis.length)return;any=true;
-    gh+='<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num">'+done+' / '+arr.length+'</span></div><div class="list">'+vis.map(function(i){return shopRow(C,i)}).join('')+'</div></div>';
+    var byA={};vis.forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
+    var as=Object.keys(byA).sort(areaCmp),multi=as.length>1||as[0]!=='';
+    var body=as.map(function(a){
+      var ar=byA[a].sort(function(x,y){return ((!pending(C,x))-(!pending(C,y)))||natCmp(x.kode,y.kode)}),left=ar.filter(function(i){return pending(C,i)}).length;
+      return (multi?'<div class="area">'+esc(a||'Tanpa lantai/area')+'<span>'+(left?left+' lagi':'selesai')+'</span></div>':'')+ar.map(function(i){return shopRow(C,i)}).join('')}).join('');
+    gh+='<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num">'+done+' / '+arr.length+'</span></div><div class="list">'+body+'</div></div>';
   });
   if(gh)h+='<div class="groups">'+gh+'</div>';
   if(!any)h+='<div class="list"><div class="empty">'+(keys.length?(f==='belum'?'Semua barang sudah dibeli.':'Belum ada yang selesai.'):'Belum ada pesanan yang sudah dibayar. Daftar belanja terisi otomatis setelah pelanggan lunas.')+'</div></div>';
@@ -1529,7 +1566,7 @@ function viewTagihan(C){
 function sheet(title,inner,tall){
   return '<div class="overlay" data-act="modal-bg"><div class="sheet'+(tall?' tall':'')+'" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="grab"></div><div class="sheet-hd"><h2>'+esc(title)+'</h2><button class="icon-btn" data-act="modal-close" aria-label="Tutup">'+ico('x')+'</button></div>'+inner+'</div></div>';
 }
-function tokoList(C){var s={};C.items.forEach(function(i){if(i.toko)s[i.toko]=1});return '<datalist id="tokoList">'+Object.keys(s).map(function(k){return '<option value="'+esc(k)+'">'}).join('')+'</datalist>'}
+function tokoList(C){var s={},a={};C.items.forEach(function(i){var k=tokoOf(i);if(k)s[k]=1;var l=areaOf(i);if(l)a[l]=1});return '<datalist id="tokoList">'+Object.keys(s).sort(natCmp).map(function(k){return '<option value="'+esc(k)+'">'}).join('')+'</datalist><datalist id="areaList">'+Object.keys(a).sort(natCmp).map(function(k){return '<option value="'+esc(k)+'">'}).join('')+'</datalist>'}
 function modalItem(C,edit){
   var t=C.t,i=edit?S.items.find(function(x){return x.id===UI.modal.id}):{kode:nextCode(C),nama:'',toko:S.lastToko||'',harga:'',stok:''};
   if(!i)return '';
@@ -1538,7 +1575,8 @@ function modalItem(C,edit){
   return sheet(edit?'Ubah barang':'Tambah barang','<form data-form="'+(edit?'item-edit':'item-add')+'" autocomplete="off"><div class="sheet-bd">'+(edit?'':'<button type="button" class="btn text sm" style="align-self:flex-start" data-act="item-bulk">Punya banyak barang? Tempel sekaligus</button>')+
     '<label class="field"><span>Kode barang</span><input id="i-kode" name="kode" class="upper" required autocapitalize="characters" autocomplete="off" placeholder="Contoh: A12" value="'+esc(i.kode)+'"></label>'+
     '<label class="field"><span>Nama barang</span><input id="i-nama" name="nama" required autocomplete="off" placeholder="Contoh: Sunscreen 50ml" value="'+esc(i.nama)+'"></label>'+
-    '<label class="field"><span>Toko</span><input id="i-toko" name="toko" list="tokoList" autocomplete="off" placeholder="Tempat membeli" value="'+esc(i.toko)+'"></label>'+tokoList(C)+
+    '<label class="field"><span>Toko</span><input id="i-toko" name="toko" list="tokoList" autocomplete="off" placeholder="Tempat membeli" value="'+esc(tokoOf(i))+'"></label>'+
+    '<label class="field"><span>Lantai atau area (boleh kosong)</span><input id="i-area" name="area" list="areaList" autocomplete="off" placeholder="Contoh: Lantai 2, rak kosmetik" value="'+esc(areaOf(i))+'"><small>Barang di toko yang sama dikelompokkan per lantai atau area di daftar belanja, supaya tidak bolak-balik.</small></label>'+tokoList(C)+
     '<label class="field"><span>Harga di toko ('+esc(t.mata)+')</span><input id="i-harga" name="harga" type="number" inputmode="decimal" min="0" step="any" required data-live="price" placeholder="0" value="'+esc(i.harga)+'"></label>'+
     '<div class="field"><span>Harga jual ke pelanggan</span><div class="utabs" role="group" aria-label="Cara menentukan harga jual"><button type="button" data-act="pmode" data-m="auto" aria-pressed="'+(!hasFix)+'">Otomatis</button><button type="button" data-act="pmode" data-m="manual" aria-pressed="'+hasFix+'"'+(APP.noFix?' disabled':'')+'>Atur sendiri</button></div><input type="hidden" id="i-pmode" name="pmode" value="'+(hasFix?'manual':'auto')+'"></div>'+
     '<div class="hint" id="price-preview">Harga jual ke pelanggan: isi harga dulu</div>'+
@@ -1661,7 +1699,7 @@ function parseBulk(text,C,defToko){
   var known={};C.items.forEach(function(i){known[i.kode]=1});var seen={},ok=[],bad=[];
   String(text||'').split('\n').forEach(function(raw){
     var l=raw.trim();if(!l)return;
-    var toko=defToko||'',at=/\s@\s*(.+)$/.exec(l);if(at){toko=at[1].trim();l=l.slice(0,at.index).trim()}
+    var toko=normStore(defToko||''),at=/\s@\s*(.+)$/.exec(l);if(at){toko=normStore(at[1]);l=l.slice(0,at.index).trim()}
     var m=/^([A-Za-z]{1,4}-?\d{1,4})\s+(.+?)\s+(\d[\d.,]*)$/.exec(l);
     if(!m){bad.push([raw.trim(),'format kurang pas (kode, nama, harga)']);return}
     var kode=norm(m[1]),s=m[3],harga=/^\d{1,3}([.,]\d{3})+$/.test(s)?parseFloat(s.replace(/[.,]/g,'')):parseFloat(s.replace(',','.'));
@@ -1673,7 +1711,7 @@ function parseBulk(text,C,defToko){
 }
 function modalBulk(C){
   return sheet('Tambah banyak barang','<form data-form="item-bulk" autocomplete="off"><div class="sheet-bd">'+
-    '<p class="small muted" style="margin:0">Satu barang per baris, dengan urutan: <b>kode, nama, harga</b>. Contoh di bawah. Kalau tokonya beda, tambahkan <b>@Nama Toko</b> di ujung baris.</p>'+
+    '<p class="small muted" style="margin:0">Satu barang per baris, dengan urutan: <b>kode, nama, harga</b>. Contoh di bawah. Kalau tokonya beda, tambahkan <b>@Nama Toko</b> di ujung baris. Untuk lantai atau area: <b>@Nama Toko / Lantai 2</b>.</p>'+
     '<label class="field"><span>Toko (untuk semua baris)</span><input id="b-toko" name="toko" list="tokoList" autocomplete="off" placeholder="Tempat membeli" value="'+esc(S.lastToko||'')+'" data-live="bulk"></label>'+tokoList(C)+
     '<label class="field"><span>Daftar barang</span><textarea id="b-lines" name="lines" rows="7" data-live="bulk" placeholder="'+esc('A01 Sunscreen stick 14000\nA02 Sheet mask isi 10 12000\nB01 Tumbler 500ml 5000 @Daiso')+'" style="min-height:150px;font-family:var(--f-mono);font-size:.9rem"></textarea></label>'+
     '<div class="hint" id="bulk-preview">Tempel atau ketik daftar barang di atas.</div></div>'+
@@ -1687,10 +1725,17 @@ function liveBulk(){
     (r.bad.length?'<br><span style="color:var(--warn)">'+r.bad.length+' baris dilewati:</span><br>'+r.bad.slice(0,4).map(function(b){return esc(b[0])+' <span class="muted">('+b[1]+')</span>'}).join('<br>'):'');
 }
 function copyShop(C){
-  var g={};C.items.forEach(function(i){var p=C.per[i.id];if(p.ordered<=0||i.status!=='belum'||p.alloc<=0)return;var k=i.toko||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
-  var ks=Object.keys(g).sort();if(!ks.length){toast('Tidak ada yang perlu dibeli');return}
+  var g={};C.items.forEach(function(i){var p=C.per[i.id];if(p.ordered<=0||!pending(C,i))return;var k=tokoOf(i)||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
+  var ks=Object.keys(g).sort(natCmp);if(!ks.length){toast('Tidak ada yang perlu dibeli');return}
   var s='*Daftar belanja: '+C.t.nama+'*\n';
-  ks.forEach(function(k){s+='\n*'+k+'*\n'+g[k].sort(function(a,b){return a.kode<b.kode?-1:1}).map(function(i){return '- '+i.kode+' '+i.nama+' x'+C.per[i.id].alloc}).join('\n')+'\n'});
+  ks.forEach(function(k){
+    var byA={};g[k].forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
+    var as=Object.keys(byA).sort(areaCmp);
+    s+='\n*'+k+'*\n';
+    as.forEach(function(a){
+      if(a||as.length>1)s+='_'+(a||'Tanpa lantai/area')+'_\n';
+      s+=byA[a].sort(function(x,y){return natCmp(x.kode,y.kode)}).map(function(i){var p=C.per[i.id];return '- '+i.kode+' '+i.nama+' x'+(topUp(C,i)?p.wait:p.alloc)}).join('\n')+'\n'});
+  });
   copy(s.trim());
 }
 function setShip(cid,s){
@@ -1833,6 +1878,7 @@ document.addEventListener('click',function(e){
   switch(a){
     case 'tab':goTab(el.dataset.tab);break;
     case 'filter':UI.filter=el.dataset.f;render();break;
+    case 'tokof':var tks={};C.items.forEach(function(i){if(C.per[i.id].ordered>0)tks[tokoOf(i)||'Tanpa toko']=1});var tka=Object.keys(tks).sort(natCmp);UI.tf=el.dataset.f===''?'':(tka[+el.dataset.f]||'');render();break;
     case 'cf':UI.cf=el.dataset.f;render();break;
     case 'trip-new':UI.modal={type:'trip-new'};UI.focus='t-nama';render();break;
     case 'trip-edit':UI.modal={type:'trip-edit'};render();break;
@@ -1929,7 +1975,7 @@ document.addEventListener('submit',function(e){
   if(kind==='item-add'){
     var kode=norm(fd.kode);if(!kode)return;
     if(S.items.some(function(i){return i.trip===t.id&&i.kode===kode})){toast('Kode '+kode+' sudah dipakai di trip ini');return}
-    var toko=(fd.toko||'').trim();if(toko)S.lastToko=toko;
+    var toko=joinStore(fd.toko,fd.area);if(toko)S.lastToko=toko;
     var fx=fixOf(fd);if(fx===false)return;
     S.items.push({id:uid(),trip:t.id,kode:kode,nama:fd.nama.trim(),toko:toko,harga:parseFloat(fd.harga)||0,stok:fd.stok===''?'':parseInt(fd.stok,10),status:'belum',fix:fx});
     save();UI.modal=again?{type:'item-new'}:null;if(again)UI.focus='i-kode';render();toast('Barang '+kode+' disimpan');
@@ -1937,7 +1983,7 @@ document.addEventListener('submit',function(e){
     var it=S.items.find(function(x){return x.id===UI.modal.id}),nk=norm(fd.kode);
     if(S.items.some(function(i){return i.trip===it.trip&&i.kode===nk&&i.id!==it.id})){toast('Kode '+nk+' sudah dipakai barang lain');return}
     var fx2=fixOf(fd);if(fx2===false)return;it.fix=fx2;
-    var oldK=it.kode;it.kode=nk;it.nama=fd.nama.trim();it.toko=(fd.toko||'').trim();it.harga=parseFloat(fd.harga)||0;it.stok=fd.stok===''?'':parseInt(fd.stok,10);
+    var oldK=it.kode;it.kode=nk;it.nama=fd.nama.trim();it.toko=joinStore(fd.toko,fd.area);it.harga=parseFloat(fd.harga)||0;it.stok=fd.stok===''?'':parseInt(fd.stok,10);
     if(oldK!==nk)S.lines.forEach(function(l){if(l.trip===it.trip&&l.kode===oldK)l.kode=nk});
     save();UI.modal=null;render();toast('Barang diperbarui');
   }else if(kind==='order-add'){
