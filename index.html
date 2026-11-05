@@ -219,12 +219,30 @@ summary{font-size:1.35rem;padding:18px 0;min-height:56px;align-items:center}
 .nota .stamp{top:16px;bottom:auto;right:16px;font-size:1.5rem}
 @media(max-width:879px){.mk-gain{position:relative;right:auto;bottom:auto;margin:-14px 6px 0 auto;width:min(280px,84%)}.stage{padding-bottom:10px}}
 @media(min-width:880px){.mk-gain{bottom:-34px}.stage{padding-bottom:70px}}
+
+@media(max-width:859px){.bar .hm{display:none}}
+.alt{margin:14px 0 0;font-size:.92rem}.alt a{color:var(--muted);font-weight:600}
+.paths{display:grid;gap:14px}@media(min-width:760px){.paths{grid-template-columns:1fr 1fr}}
+.path{background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:22px;padding:28px 24px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:1px solid var(--rule)}
+.path.new{background:var(--card);border-color:var(--blue);box-shadow:0 30px 60px -36px rgba(39,64,216,.55)}
+.path h3{margin:0;font:400 1.6rem/1.2 var(--serif)}.path p{margin:0 0 18px;color:var(--muted);flex:1}
+.fbtn{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.final .btn.gh{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+.bar nav .btn{white-space:nowrap}@media(max-width:859px){.bar nav a.l{display:none}.bar nav{gap:8px}.bar .btn{padding:6px 14px;font-size:.84rem}}
+.dock{gap:0;padding:0;overflow:hidden;text-decoration:none}.dock a{flex:1;align-self:stretch;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-weight:700}.dock .d1{flex:0 0 28%;background:rgba(255,255,255,.12)}
+#coba{border:0;border-radius:24px;padding:0;width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 32px);background:var(--card);color:var(--ink);box-shadow:0 40px 90px -30px rgba(0,0,0,.6)}
+#coba::backdrop{background:rgba(8,12,34,.6);backdrop-filter:blur(4px)}
+#cf{padding:28px 22px 22px;display:grid;gap:14px;position:relative}#cf h2{margin:0;font:400 1.9rem/1.15 var(--serif)}.sub{margin:0;color:var(--muted);font-size:.9rem}
+#cf label{display:grid;gap:6px;font-weight:600;font-size:.88rem}
+#cf input,#cf textarea{font:400 1rem var(--sans);color:var(--ink);background:var(--bg);border:1.5px solid var(--rule);border-radius:14px;padding:12px 14px;min-height:48px;width:100%;box-sizing:border-box;resize:vertical}
+#cf input:focus,#cf textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:transparent}
+#cf .x{position:absolute;right:10px;top:8px;width:44px;height:44px;border:0;background:none;color:var(--muted);font-size:1.7rem;cursor:pointer}
+.err{margin:0;color:#c0392b;font-weight:600;font-size:.88rem}.err[hidden]{display:none}
 </style>
 </head>
 <body>
 <header class="bar"><div class="wrap">
 <a class="brand" href="#top"><svg class="lg" viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4560ff"/><stop offset="1" stop-color="#1a2db0"/></linearGradient></defs><rect width="512" height="512" rx="116" fill="url(#g)"/><path d="M176 196c0-44 36-80 80-80s80 36 80 80" fill="none" stroke="#ffe14d" stroke-width="30" stroke-linecap="round"/><path d="M128 196h256l-20 218a30 30 0 0 1-30 28H178a30 30 0 0 1-30-28z" fill="#fff"/><path d="M204 308l38 38 72-80" fill="none" stroke="#2740d8" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Jastip</b><small>Manager</small></span></a>
-<nav><a class="l" href="#fitur">Fitur</a><a class="l" href="#cara">Cara kerja</a><a class="l" href="#nota">Nota</a><a class="l" href="#faq">FAQ</a><a class="btn pri" href="app.html">Masuk / Daftar</a></nav>
+<nav><a class="l" href="#fitur">Fitur</a><a class="l" href="#cara">Cara kerja</a><a class="l" href="#nota">Nota</a><a class="l" href="#faq">FAQ</a><a class="btn" href="app.html">Masuk</a><a class="btn pri" href="https://wa.me/628197284796?text=Halo%20Alfa%20Creative%20Persada%2C%20saya%20ingin%20mencoba%20atau%20berlangganan%20Jastip%20Manager." data-coba>Coba<span class="hm"> / Berlangganan</span></a></nav>
 </div></header>
 <div class="amb" aria-hidden="true"><i></i><i></i></div>
 <main id="top">
@@ -232,7 +250,7 @@ summary{font-size:1.35rem;padding:18px 0;min-height:56px;align-items:center}
 <div><span class="eye rv">Aplikasi pencatat jastip</span>
 <h1 class="rv" style="--d:.1s">Kelola jastip dari <em>chat WhatsApp,</em> tanpa buku nota.</h1>
 <p class="lead rv" style="--d:.25s">Impor pesanan dari chat grup, buat daftar belanja otomatis, kirim tagihan ke pelanggan, dan lihat untung tiap trip. Semua dalam satu aplikasi di HP.</p>
-<div class="cta rv" style="--d:.4s"><a class="btn pri" href="app.html">Mulai catat jastip</a><a class="btn" href="#cara">Lihat cara kerjanya</a></div>
+<div class="cta rv" style="--d:.4s"><a class="btn pri" href="https://wa.me/628197284796?text=Halo%20Alfa%20Creative%20Persada%2C%20saya%20ingin%20mencoba%20atau%20berlangganan%20Jastip%20Manager." data-coba>Coba / Berlangganan</a><a class="btn" href="app.html">Masuk ke akun</a></div><p class="alt rv" style="--d:.45s"><a href="#cara">Lihat cara kerjanya</a></p>
 <small class="rv" style="--d:.5s">Tanpa install. Buka di browser, tambahkan ke layar utama.</small></div>
 <div class="stage" id="demo" role="img" aria-label="Contoh Beranda Jastip Manager: status trip, daftar tugas, dan perkiraan untung bersih"><div class="mk x" style="--d:.2s">
 <div class="mk-bar"><img src="icon.svg" alt="" width="26" height="26"><span class="mk-trip">Trip Korea</span><i class="mk-dot"></i></div>
@@ -261,12 +279,34 @@ summary{font-size:1.35rem;padding:18px 0;min-height:56px;align-items:center}
 <div class="role rv" style="--d:.24s"><span class="tag">Petugas belanja</span><h3>Fokus belanja</h3><ul><li>Yang membeli barang di toko</li><li>Hanya daftar belanja</li><li>Centang barang yang sudah dibeli</li><li>Tanpa akses keuangan</li></ul></div></div></div></section>
 <section><div class="wrap"><div class="hd rv"><span class="eye">Cocok untuk</span><h2>Jastip jenis apa saja, <em>besar atau kecil.</em></h2></div><div class="chips rv"><span>Jastip luar negeri</span><span>Titip dari mall atau kota lain</span><span>Open PO</span><span>Jastip bareng tim</span><span>Reseller skala kecil</span><span>Jastip musiman</span></div></div></section>
 <section id="faq"><div class="wrap" style="max-width:780px"><div class="hd rv"><span class="eye">FAQ</span><h2>Pertanyaan yang <em>sering ditanyakan.</em></h2></div><details class="rv"><summary>Apa itu Jastip Manager?</summary><p>Aplikasi web untuk mencatat jastip: barang, pesanan (termasuk impor dari chat WhatsApp), daftar belanja, tagihan pelanggan, dan untung per trip.</p></details><details class="rv"><summary>Harus install dulu?</summary><p>Tidak. Buka lewat browser, lalu tambahkan ke layar utama HP kalau mau tampil seperti aplikasi.</p></details><details class="rv"><summary>Bagaimana cara impor chat WhatsApp?</summary><p>Salin chat grup yang berisi kode barang dan jumlah, lalu tempel di menu impor. Hasilnya bisa kamu cek dulu sebelum disimpan.</p></details><details class="rv"><summary>Siapa yang bisa melihat modal dan untung?</summary><p>Hanya Pemilik. Pencatat bisa mengurus barang, pesanan, dan pembayaran. Petugas belanja hanya melihat daftar belanja.</p></details><details class="rv"><summary>Karyawan atau teman belanja bisa ikut pakai?</summary><p>Bisa. Mereka daftar dengan emailnya sendiri, lalu Pemilik menambahkan di Pengaturan dan memilih perannya.</p></details><details class="rv"><summary>Datanya disimpan di mana?</summary><p>Data disimpan di Supabase dan setiap akun masuk dengan email. Akses dibatasi sesuai peran di tokomu.</p></details></div></section>
-<section style="padding-top:0"><div class="wrap"><div class="final rv"><h2>Trip berikutnya, <em>catat dengan rapi.</em></h2><p>Daftar dan buat toko pertamamu sekarang. Cukup dengan email.</p><a class="btn" href="app.html">Daftar dan buat toko</a></div></div></section>
+<section id="mulai"><div class="wrap"><div class="hd rv"><span class="eye">Mulai dari sini</span><h2>Sudah punya akun, <em>atau baru mau coba?</em></h2></div>
+<div class="paths">
+<div class="path rv"><h3>Saya sudah punya akun</h3><p>Masuk dan lanjutkan trip, pesanan, dan tagihanmu.</p><a class="btn pri" href="app.html">Masuk</a></div>
+<div class="path new rv" style="--d:.1s"><h3>Saya ingin mencoba atau berlangganan</h3><p>Isi form singkat. Kami balas lewat WhatsApp dan menyiapkan akun tokomu.</p><a class="btn" href="https://wa.me/628197284796?text=Halo%20Alfa%20Creative%20Persada%2C%20saya%20ingin%20mencoba%20atau%20berlangganan%20Jastip%20Manager." data-coba>Isi form</a></div>
+</div></div></section>
+<section style="padding-top:0"><div class="wrap"><div class="final rv"><h2>Trip berikutnya, <em>catat dengan rapi.</em></h2><p>Sudah punya akun, langsung masuk. Belum punya, kirim form dan kami siapkan.</p><div class="fbtn"><a class="btn" href="https://wa.me/628197284796?text=Halo%20Alfa%20Creative%20Persada%2C%20saya%20ingin%20mencoba%20atau%20berlangganan%20Jastip%20Manager." data-coba>Coba / Berlangganan</a><a class="btn gh" href="app.html">Masuk</a></div></div></div></section>
 </main>
 <footer><div class="wrap"><a class="brand" href="#top"><svg class="lg" viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4560ff"/><stop offset="1" stop-color="#1a2db0"/></linearGradient></defs><rect width="512" height="512" rx="116" fill="url(#g)"/><path d="M176 196c0-44 36-80 80-80s80 36 80 80" fill="none" stroke="#ffe14d" stroke-width="30" stroke-linecap="round"/><path d="M128 196h256l-20 218a30 30 0 0 1-30 28H178a30 30 0 0 1-30-28z" fill="#fff"/><path d="M204 308l38 38 72-80" fill="none" stroke="#2740d8" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Jastip</b></span></a><span>© <span id="yr">2026</span> Jastip Manager · <a href="app.html">Masuk ke aplikasi</a></span></div></footer>
-<a class="dock" id="dock" href="app.html">Mulai catat jastip</a>
+<dialog id="coba" aria-labelledby="coba-t"><form id="cf" novalidate>
+<button type="button" class="x" data-close aria-label="Tutup">&times;</button>
+<h2 id="coba-t">Coba atau berlangganan</h2><p class="sub">Data ini dikirim ke WhatsApp Alfa Creative Persada. Tidak disimpan di situs ini.</p>
+<label>Nama<input name="nama" autocomplete="name" required maxlength="80"></label>
+<label>Instagram atau media sosial jastip<input name="sosmed" placeholder="@namatoko" required maxlength="80"></label>
+<label>Email<input name="email" type="email" autocomplete="email" inputmode="email" required maxlength="120"></label>
+<label>Pesan<textarea name="pesan" rows="3" maxlength="500" placeholder="Contoh: ingin mencoba dulu, jastip dari Korea, sekitar 30 pesanan per trip"></textarea></label>
+<p class="err" id="cerr" role="alert" hidden></p>
+<button class="btn pri" type="submit">Kirim lewat WhatsApp</button></form></dialog>
+<div class="dock" id="dock"><a href="app.html" class="d1">Masuk</a><a href="https://wa.me/628197284796?text=Halo%20Alfa%20Creative%20Persada%2C%20saya%20ingin%20mencoba%20atau%20berlangganan%20Jastip%20Manager." class="d2" data-coba>Coba / Berlangganan</a></div>
 <script>
 (function(){
+var WA="628197284796",dlg=document.getElementById('coba'),cf=document.getElementById('cf'),er=document.getElementById('cerr');
+[].forEach.call(document.querySelectorAll('[data-coba]'),function(a){a.addEventListener('click',function(e){if(!dlg.showModal)return;e.preventDefault();er.hidden=true;dlg.showModal();cf.nama.focus()})});
+dlg.addEventListener('click',function(e){if(e.target===dlg||e.target.hasAttribute('data-close'))dlg.close()});
+cf.addEventListener('submit',function(e){e.preventDefault();er.hidden=true;var v=function(n){return cf[n].value.trim()},bad='';
+if(!v('nama'))bad='nama';else if(!v('sosmed'))bad='sosmed';else if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('email')))bad='email';
+if(bad){er.textContent=bad=='email'?'Isi email dengan benar, contoh nama@gmail.com.':'Lengkapi '+(bad=='nama'?'nama':'akun Instagram atau media sosial')+' dulu.';er.hidden=false;cf[bad].focus();return}
+var t='Halo Alfa Creative Persada, saya ingin mencoba atau berlangganan Jastip Manager.\n\nNama: '+v('nama')+'\nInstagram/media sosial: '+v('sosmed')+'\nEmail: '+v('email')+(v('pesan')?'\nPesan: '+v('pesan'):'')+'\n\nTerima kasih.';
+window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank','noopener');dlg.close();cf.reset()});
 var io=new IntersectionObserver(function(en){en.forEach(function(e){if(!e.isIntersecting)return;var t=e.target;t.classList.add('in');io.unobserve(t);
  [].forEach.call(t.querySelectorAll('[data-count]'),count)})},{threshold:.3,rootMargin:'0px 0px -6% 0px'});
 [].forEach.call(document.querySelectorAll('.rv,.fs,#demo'),function(e){if(e.classList.contains('rv')&&e.parentNode.closest('.rv'))return;io.observe(e)});
