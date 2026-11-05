@@ -13,8 +13,8 @@ begin
     raise exception 'kunci salah' using errcode = '28000';
   end if;
   return coalesce((
-    select json_agg(x order by x.dl nulls last) from (
-      select t.name as trip, t.deadline as dl,
+    select json_agg(x order by x.deadline nulls last) from (
+      select t.name as trip, t.deadline as deadline,
         (select count(distinct o.customer_id) from order_lines o where o.trip_id = t.id and not o.cancelled)::int as pelanggan,
         (select count(distinct o.customer_id) from order_lines o where o.trip_id = t.id and not o.cancelled
            and not exists (select 1 from payments p where p.trip_id = t.id and p.customer_id = o.customer_id))::int as belum_bayar,
