@@ -1,0 +1,18 @@
+# Kirim ringkasan harian ke Telegram, tiap hari 08.00 WIB.
+name: Ringkasan harian Telegram
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+jobs:
+  kirim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kirim ringkasan
+        env:
+          SUPABASE_ANON: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYndncHF3cm9pbHpmeWdneXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzE5NjYsImV4cCI6MjEwOTA0Nzk2Nn0.QIGkI8VDYlvnWFfudVE4WQHrCR6DOyRPwH3LwKr6bAY
+          BOT_KUNCI: ${{ secrets.BOT_KUNCI }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: python3 database/bot_telegram.py
