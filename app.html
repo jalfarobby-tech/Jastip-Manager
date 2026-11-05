@@ -1555,6 +1555,7 @@ function viewTagihan(C){
   var head=!tot.t?'Belum ada tagihan di trip ini.':sisa>0?'<span class="num">'+rp(sisa)+'</span> belum dibayar.':'Semua tagihan sudah lunas.';
   var h='<div class="page">'+phero(C.t.nama,head,tot.t?pct:null,[[nC,'pelanggan'],[nW,'menunggu bayar'],[nL,'lunas']],
     '<button class="btn primary" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn" data-act="import-open">'+ico('wa')+'Impor chat WA</button>');
+  if(S.role==='owner'&&!(APP.shop&&APP.shop.pay))h+='<div class="banner" style="margin-bottom:12px"><span>Nomor rekening belum diisi, jadi tagihan WhatsApp belum memuat cara bayar.</span><button class="btn sm" data-act="settings">Isi sekarang</button></div>';
   if(!C.custs.length)return h+'<div class="empty">Belum ada pelanggan di trip ini. Tekan Pesanan baru atau impor chat WhatsApp.</div></div>';
   h+='<div class="toolbar"><input id="q-lines" class="search" data-inp="qo" type="search" placeholder="Cari nama pelanggan" aria-label="Cari pelanggan" value="'+esc(UI.qo)+'">'+
     '<div class="utabs" role="group" aria-label="Filter"><button data-act="cf" data-f="belum" aria-pressed="'+(UI.cf==='belum')+'">Perlu ditindak</button><button data-act="cf" data-f="semua" aria-pressed="'+(UI.cf==='semua')+'">Semua</button></div></div>';
