@@ -607,6 +607,15 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .area:first-child{margin-top:0;border-radius:18px 18px 0 0}
 .area span{font-weight:600;text-transform:none;letter-spacing:0}
 .groups .list>.area:first-child{margin-top:-2px}
+
+/* pemilih barang/pelanggan */
+.pick{display:flex;flex-direction:column;max-height:min(46vh,320px);overflow-y:auto;overscroll-behavior:contain;margin-top:6px;background:var(--surface);border:1.5px solid var(--rule);border-radius:14px;box-shadow:0 14px 30px -18px rgba(0,0,0,.45)}
+.pick button{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;text-align:left;min-height:52px;padding:8px 14px;border:0;border-bottom:1px solid var(--rule);background:none;color:var(--ink);font:inherit;cursor:pointer}
+.pick button:last-of-type{border-bottom:0}.pick button:active,.pick button:focus-visible,.pick button:hover{background:var(--blue-soft);outline:0}
+.pick b{font:700 .95rem var(--f-mono);min-width:3.2em}.pick button span{color:var(--muted);font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pick em{font-style:normal;font-weight:700;font-size:.85rem}
+.pick-more{padding:12px 14px;color:var(--muted);font-size:.85rem}
+.orow .pick{margin-top:0}
+.pick[data-k=cust] b{font:700 .95rem var(--f-body)}
 </style>
 </head>
 <body>
@@ -1590,8 +1599,8 @@ function modalLine_old(C){
   var codeOpts=C.items.map(function(i){return '<option value="'+esc(i.kode)+'">'+esc(i.nama)+'</option>'}).join('');
   var custOpts=S.customers.map(function(c){return '<option value="'+esc(c.nama)+'">'}).join('');
   return sheet('Tambah pesanan','<form data-form="line-add" autocomplete="off"><div class="sheet-bd">'+
-    '<label class="field"><span>Nama pelanggan</span><input id="m-nama" name="nama" list="custList" required autocomplete="off" placeholder="Ketik nama atau pilih" value="'+esc((function(){var x=UI.modal&&UI.modal.cust&&S.customers.find(function(k){return k.id===UI.modal.cust});return x?x.nama:''})())+'"></label><datalist id="custList">'+custOpts+'</datalist>'+
-    '<label class="field"><span>Kode barang</span><input id="m-kode" name="kode" class="upper" list="codeList" required autocapitalize="characters" autocomplete="off" data-live="code" placeholder="Contoh: A12"></label><datalist id="codeList">'+codeOpts+'</datalist>'+
+    '<label class="field"><span>Nama pelanggan</span><input id="m-nama" name="nama" data-pick="cust" required autocomplete="off" placeholder="Ketik nama atau pilih" value="'+esc((function(){var x=UI.modal&&UI.modal.cust&&S.customers.find(function(k){return k.id===UI.modal.cust});return x?x.nama:''})())+'"></label><datalist id="custList">'+custOpts+'</datalist>'+
+    '<label class="field"><span>Kode barang</span><input id="m-kode" name="kode" class="upper" data-pick="code" required autocapitalize="characters" autocomplete="off" data-live="code" placeholder="Contoh: A12"></label><datalist id="codeList">'+codeOpts+'</datalist>'+
     '<div class="hint" id="code-preview">Ketik kode untuk melihat nama barang</div>'+
     '<div class="field"><span>Jumlah</span>'+stepper('m-qty',1,1)+'</div></div>'+
     '<div class="sheet-ft"><button class="btn" type="submit" name="again" value="1">Simpan &amp; tambah lagi</button><button class="btn primary" type="submit">Simpan</button></div></form>');
@@ -1600,14 +1609,14 @@ function modalLine_old(C){
 var ORN=0;
 function orderRow(){
   var n=++ORN;
-  return '<div class="orow"><div class="orow-top"><input name="kode" class="upper" list="codeList" autocapitalize="characters" autocomplete="off" data-live="ord" placeholder="Kode barang, mis. A12" aria-label="Kode barang">'+stepper('oq-'+n,1,1)+'<button type="button" class="icon-btn rm" data-act="ord-del" aria-label="Hapus baris">'+ico('x')+'</button></div><div class="orow-pv small muted" aria-live="polite"></div></div>';
+  return '<div class="orow"><div class="orow-top"><input name="kode" class="upper" data-pick="code" inputmode="text" autocapitalize="characters" autocomplete="off" data-live="ord" placeholder="Kode barang, mis. A12" aria-label="Kode barang">'+stepper('oq-'+n,1,1)+'<button type="button" class="icon-btn rm" data-act="ord-del" aria-label="Hapus baris">'+ico('x')+'</button></div><div class="orow-pv small muted" aria-live="polite"></div></div>';
 }
 function modalOrder(C){
   var codeOpts=C.items.map(function(i){return '<option value="'+esc(i.kode)+'">'+esc(i.nama)+'</option>'}).join('');
   var custOpts=S.customers.map(function(c){return '<option value="'+esc(c.nama)+'">'}).join('');
   var pre=UI.modal&&UI.modal.cust&&S.customers.find(function(k){return k.id===UI.modal.cust});
   return sheet('Pesanan baru','<form data-form="order-add" id="ord-form" autocomplete="off"><div class="sheet-bd">'+
-    '<label class="field"><span>Nama pelanggan</span><input id="o-nama" name="nama" list="custList" required autocomplete="off" data-live="ordname" placeholder="Ketik nama atau pilih" value="'+esc(pre?pre.nama:'')+'"></label><datalist id="custList">'+custOpts+'</datalist>'+
+    '<label class="field"><span>Nama pelanggan</span><input id="o-nama" name="nama" data-pick="cust" required autocomplete="off" data-live="ordname" placeholder="Ketik nama atau pilih" value="'+esc(pre?pre.nama:'')+'"></label><datalist id="custList">'+custOpts+'</datalist>'+
     '<label class="field"><span>Nomor WhatsApp</span><input id="o-hp" name="hp" inputmode="tel" autocomplete="off" placeholder="08xxxxxxxxxx" value="'+esc(pre?pre.hp:'')+'"><small>Dipakai untuk mengirim tagihan. Tersimpan untuk pesanan berikutnya.</small></label>'+
     '<div class="label" style="margin-top:4px">Barang yang dipesan</div><div id="ord-rows">'+orderRow()+'</div><datalist id="codeList">'+codeOpts+'</datalist>'+
     '<button type="button" class="btn sm" data-act="ord-add" style="align-self:flex-start">'+ico('plus')+'Tambah barang lain</button>'+
@@ -1964,6 +1973,36 @@ document.addEventListener('input',function(e){
   }
 });
 var drag=null;
+
+/* ---------- pemilih barang dan pelanggan (pengganti datalist yang sulit muncul di HP) ---------- */
+var PICK=null;
+function pickClose(){if(PICK){PICK.panel.remove();PICK=null}}
+function pickOpen(inp){
+  var kind=inp.dataset.pick,host=inp.closest('.orow-top,.field');if(!host)return;
+  if(!PICK||PICK.inp!==inp){pickClose();var pn=document.createElement('div');pn.className='pick';pn.dataset.k=kind;pn.setAttribute('role','listbox');host.insertAdjacentElement('afterend',pn);PICK={inp:inp,panel:pn,kind:kind}}
+  var q=inp.value.trim().toLowerCase(),list=[];
+  if(kind==='code'){var C=curTrip()?calc(S.cur):null;if(!C){pickClose();return}
+    list=C.items.filter(function(i){return !q||i.kode.toLowerCase().indexOf(q)>=0||String(i.nama).toLowerCase().indexOf(q)>=0}).sort(function(a,b){var as=a.kode.toLowerCase().indexOf(q)===0?0:1,bs=b.kode.toLowerCase().indexOf(q)===0?0:1;return as-bs||natCmp(a.kode,b.kode)})
+      .map(function(i){return {v:i.kode,t:i.kode,s:i.nama+(tokoOf(i)?' · '+tokoOf(i):''),x:i.status==='habis'?'Habis':rp(C.per[i.id].price)}})}
+  else list=S.customers.filter(function(c){return !q||c.nama.toLowerCase().indexOf(q)>=0}).sort(function(a,b){return a.nama.localeCompare(b.nama,'id')}).map(function(c){return {v:c.nama,t:c.nama,s:c.hp||'',x:''}});
+  if(kind==='cust'&&!list.length){pickClose();return}
+  var more=list.length>40;list=list.slice(0,40);
+  PICK.panel.innerHTML=list.length?list.map(function(o){return '<button type="button" role="option" data-pv="'+esc(o.v)+'"><b>'+esc(o.t)+'</b><span>'+esc(o.s)+'</span>'+(o.x?'<em>'+esc(o.x)+'</em>':'')+'</button>'}).join('')+(more?'<div class="pick-more">Ketik untuk mempersempit</div>':''):'<div class="pick-more">'+(kind==='code'?(q?'Kode belum ada di daftar barang':'Belum ada barang di trip ini'):'Pelanggan baru, lanjut isi nama')+'</div>';
+}
+function pickChoose(v){
+  if(!PICK)return;var inp=PICK.inp,kind=PICK.kind;inp.value=v;pickClose();
+  inp.dispatchEvent(new Event('input',{bubbles:true}));
+  if(kind==='cust'){var h=document.getElementById('o-hp')||inp.form&&inp.form.querySelector('[name=kode]');if(h)h.focus()}else inp.blur();
+}
+document.addEventListener('focusin',function(e){var el=e.target;if(el.dataset&&el.dataset.pick){pickOpen(el);var pn=PICK&&PICK.panel;if(pn)setTimeout(function(){pn.scrollIntoView({block:'nearest',behavior:'smooth'})},120)}});
+document.addEventListener('input',function(e){var el=e.target;if(el.dataset&&el.dataset.pick)pickOpen(el)});
+document.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('.pick button');if(b){e.preventDefault();pickChoose(b.dataset.pv)}});
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.pick button');if(b&&e.detail===0)pickChoose(b.dataset.pv)});
+document.addEventListener('focusout',function(e){if(!PICK)return;setTimeout(function(){var a=document.activeElement;if(PICK&&a!==PICK.inp&&!(a&&a.closest&&a.closest('.pick')))pickClose()},120)});
+document.addEventListener('keydown',function(e){if(!PICK)return;
+  if(e.key==='Escape'){e.stopImmediatePropagation();pickClose();return}
+  if(e.key==='ArrowDown'&&e.target===PICK.inp){var f=PICK.panel.querySelector('button');if(f){e.preventDefault();f.focus()}}
+  else if((e.key==='ArrowDown'||e.key==='ArrowUp')&&e.target.closest&&e.target.closest('.pick')){e.preventDefault();var bs=[].slice.call(PICK.panel.querySelectorAll('button')),i=bs.indexOf(e.target)+(e.key==='ArrowDown'?1:-1);if(i<0)PICK.inp.focus();else if(bs[i])bs[i].focus()}},true);
 document.addEventListener('pointerdown',function(e){var h=e.target.closest('.sheet-hd,.grab');if(!h||e.target.closest('button'))return;var sh=h.closest('.sheet');drag={y:e.clientY,sh:sh,dy:0};sh.style.transition='none'});
 document.addEventListener('pointermove',function(e){if(!drag)return;drag.dy=Math.max(0,e.clientY-drag.y);drag.sh.style.transform='translateY('+drag.dy+'px)'});
 function endDrag(){if(!drag)return;var d=drag;drag=null;if(d.dy>110){UI.modal=null;render()}else{d.sh.style.transition='transform .2s ease';d.sh.style.transform=''}}
