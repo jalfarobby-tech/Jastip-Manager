@@ -1172,7 +1172,7 @@ function idErr(e){
   if(m.indexOf('invalid login')>=0)return 'Email atau password salah.';
   if(m.indexOf('not confirmed')>=0)return 'Email belum dikonfirmasi. Buka email dari Supabase dan klik tautannya.';
   if(m.indexOf('already registered')>=0||m.indexOf('already been registered')>=0)return 'Email ini sudah terdaftar. Silakan masuk.';
-  if(m.indexOf('at least 6')>=0||(m.indexOf('password')>=0&&m.indexOf('short')>=0))return 'Password minimal 6 karakter.';
+  if(m.indexOf('at least 6')>=0||(m.indexOf('password')>=0&&m.indexOf('short')>=0))return 'Password minimal 8 karakter.';
   if(m.indexOf('valid email')>=0||m.indexOf('invalid email')>=0)return 'Format email tidak valid.';
   if(m.indexOf('rate limit')>=0||m.indexOf('too many')>=0)return 'Terlalu sering mencoba. Tunggu beberapa menit lalu coba lagi.';
   if(m.indexOf('fetch')>=0||m.indexOf('network')>=0||m.indexOf('load failed')>=0)return 'Tidak ada koneksi internet.';
@@ -1190,12 +1190,12 @@ function viewAuth(){
     '<p class="muted">'+(up?'Daftar dengan email. Setelah itu kamu bisa membuat toko, atau minta pemilik toko menambahkanmu.':'Masuk untuk membuka data tokomu.')+'</p>'+
     '<form data-aform="'+(up?'signup':'login')+'" novalidate>'+
     '<label class="field"><span>Email</span><input id="a-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" required></label>'+
-    '<label class="field"><span>Password</span><span class="pw"><input id="a-pass" name="pass" type="password" autocomplete="'+(up?'new-password':'current-password')+'" minlength="6" required><button type="button" class="peek" data-oa="peek" aria-label="Tampilkan password">Lihat</button></span>'+(up?'<small>Minimal 6 karakter.</small>':'')+'</label>'+
+    '<label class="field"><span>Password</span><span class="pw"><input id="a-pass" name="pass" type="password" autocomplete="'+(up?'new-password':'current-password')+'" minlength="8" required><button type="button" class="peek" data-oa="peek" aria-label="Tampilkan password">Lihat</button></span>'+(up?'<small>Minimal 8 karakter.</small>':'')+'</label>'+
     '<p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p>'+
     '<button class="btn primary block" type="submit" id="a-go">'+(up?'Daftar':'Masuk')+'</button></form>'+
     (up?'':'<button class="btn text block" data-oa="forgot">Lupa password?</button>')+'<button class="btn text block" data-oa="mode">'+(up?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>';
   }else if(p==='recover'){
-    h=brand+'<h1>Buat password baru</h1><p class="muted">Masukkan password baru untuk akunmu.</p><form data-aform="recover" novalidate><label class="field"><span>Password baru</span><input id="a-pass" name="pass" type="password" autocomplete="new-password" minlength="6" required><small>Minimal 6 karakter.</small></label><p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p><button class="btn primary block" type="submit" id="a-go">Simpan password</button></form>';
+    h=brand+'<h1>Buat password baru</h1><p class="muted">Masukkan password baru untuk akunmu.</p><form data-aform="recover" novalidate><label class="field"><span>Password baru</span><input id="a-pass" name="pass" type="password" autocomplete="new-password" minlength="8" required><small>Minimal 8 karakter.</small></label><p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p><button class="btn primary block" type="submit" id="a-go">Simpan password</button></form>';
   }else if(p==='noshop'){
     h=brand+'<h1>Satu langkah lagi</h1><p class="muted">Masuk sebagai <b>'+esc(APP.user.email)+'</b>.</p>'+
     '<form data-aform="shop" novalidate><label class="field"><span>Kamu pemilik toko? Beri nama tokonya</span><input id="a-shop" name="shop" placeholder="Contoh: Jastip Kakak" autocomplete="off" required></label>'+
@@ -1256,7 +1256,7 @@ document.addEventListener('submit',async function(e){
     if(kind==='login'||kind==='signup'){
       var email=(fd.email||'').trim().toLowerCase(),pass=fd.pass||'';
       if(!email||!pass){authMsg('Isi email dan password.');busy(false);return}
-      if(kind==='signup'&&pass.length<6){authMsg('Password minimal 6 karakter.');busy(false);return}
+      if(kind==='signup'&&pass.length<8){authMsg('Password minimal 8 karakter.');busy(false);return}
       var r;
       if(kind==='signup'){
         r=await sb.auth.signUp({email:email,password:pass});if(r.error)throw r.error;
@@ -1267,7 +1267,7 @@ document.addEventListener('submit',async function(e){
       APP.phase='boot';draw();
       try{await afterLogin()}catch(err){fail(err)}
     }else if(kind==='recover'){
-      var np=fd.pass||'';if(np.length<6){authMsg('Password minimal 6 karakter.');busy(false);return}
+      var np=fd.pass||'';if(np.length<8){authMsg('Password minimal 8 karakter.');busy(false);return}
       must(await sb.auth.updateUser({password:np}));
       try{history.replaceState(null,'',location.pathname)}catch(x){}
       APP.phase='boot';draw();try{await afterLogin()}catch(err){fail(err)}
