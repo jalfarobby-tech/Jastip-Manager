@@ -621,6 +621,9 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 <body>
 <div id="app"></div>
 <div id="toast" class="toast" role="status" hidden></div>
+
+.sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
+@media(max-width:420px){.sheet-ft .btn svg{display:none}}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -1980,7 +1983,7 @@ function pickClose(){if(PICK){PICK.panel.remove();PICK=null}}
 function pickOpen(inp){
   var kind=inp.dataset.pick,host=inp.closest('.orow-top,.field');if(!host)return;
   if(!PICK||PICK.inp!==inp){pickClose();var pn=document.createElement('div');pn.className='pick';pn.dataset.k=kind;pn.setAttribute('role','listbox');host.insertAdjacentElement('afterend',pn);PICK={inp:inp,panel:pn,kind:kind}}
-  var q=inp.value.trim().toLowerCase(),list=[];
+  var q=inp.value.trim().toLowerCase(),list=[];if(kind==='code'&&inp._all){var C0=curTrip()?calc(S.cur):null;if(C0&&C0.items.some(function(i){return i.kode.toLowerCase()===q}))q=''}
   if(kind==='code'){var C=curTrip()?calc(S.cur):null;if(!C){pickClose();return}
     list=C.items.filter(function(i){return !q||i.kode.toLowerCase().indexOf(q)>=0||String(i.nama).toLowerCase().indexOf(q)>=0}).sort(function(a,b){var as=a.kode.toLowerCase().indexOf(q)===0?0:1,bs=b.kode.toLowerCase().indexOf(q)===0?0:1;return as-bs||natCmp(a.kode,b.kode)})
       .map(function(i){return {v:i.kode,t:i.kode,s:i.nama+(tokoOf(i)?' · '+tokoOf(i):''),x:i.status==='habis'?'Habis':rp(C.per[i.id].price)}})}
@@ -1994,8 +1997,8 @@ function pickChoose(v){
   inp.dispatchEvent(new Event('input',{bubbles:true}));
   if(kind==='cust'){var h=document.getElementById('o-hp')||inp.form&&inp.form.querySelector('[name=kode]');if(h)h.focus()}else inp.blur();
 }
-document.addEventListener('focusin',function(e){var el=e.target;if(el.dataset&&el.dataset.pick){pickOpen(el);var pn=PICK&&PICK.panel;if(pn)setTimeout(function(){pn.scrollIntoView({block:'nearest',behavior:'smooth'})},120)}});
-document.addEventListener('input',function(e){var el=e.target;if(el.dataset&&el.dataset.pick)pickOpen(el)});
+document.addEventListener('focusin',function(e){var el=e.target;if(el.dataset&&el.dataset.pick){el._all=1;pickOpen(el);if(el.select)setTimeout(function(){try{el.select()}catch(x){}},0);var pn=PICK&&PICK.panel;if(pn)setTimeout(function(){pn.scrollIntoView({block:'nearest',behavior:'smooth'})},120)}});
+document.addEventListener('input',function(e){var el=e.target;if(el.dataset&&el.dataset.pick){el._all=0;pickOpen(el)}});
 document.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('.pick button');if(b){e.preventDefault();pickChoose(b.dataset.pv)}});
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.pick button');if(b&&e.detail===0)pickChoose(b.dataset.pv)});
 document.addEventListener('focusout',function(e){if(!PICK)return;setTimeout(function(){var a=document.activeElement;if(PICK&&a!==PICK.inp&&!(a&&a.closest&&a.closest('.pick')))pickClose()},120)});
