@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<script>if(top!==self){try{top.location=self.location}catch(e){document.documentElement.style.display="none"}}</script>
 <meta name="theme-color" content="#2740d8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1d2766" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Aplikasi pencatat jastip: pesanan, belanja, tagihan, dan untung.">
@@ -867,6 +868,7 @@ var CFG={url:'https://tibwgpqwroilzfyggyuz.supabase.co',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYndncHF3cm9pbHpmeWdneXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzE5NjYsImV4cCI6MjEwOTA0Nzk2Nn0.QIGkI8VDYlvnWFfudVE4WQHrCR6DOyRPwH3LwKr6bAY'};
 var ADMIN_WA='https://wa.me/628197284796?text='+encodeURIComponent('Halo Alfa Creative Persada, saya ingin membuat akun Jastip Manager.');
 function isOpen(){return !!window.JM_OPEN}   /* hanya diset oleh tes lokal; di produksi pendaftaran umum ditutup */
+var LOGIN_FAILS=0,LOGIN_LOCK=0;
 var sb=null;
 var APP={phase:'boot',user:null,shop:null,role:null,mode:'login',err:'',members:null,sync:'ok',dirty:false,syncing:false,tm:null,lastPoll:0};
 var SNAP={};
@@ -1337,7 +1339,12 @@ document.addEventListener('submit',async function(e){
         r=await sb.auth.signUp({email:email,password:pass});if(r.error)throw r.error;
         if(r.data.user&&r.data.user.identities&&!r.data.user.identities.length){authMsg('Email ini sudah terdaftar. Silakan masuk.');busy(false);return}
         if(!r.data.session){authMsg('Akun dibuat. Buka emailmu dan klik tautan konfirmasi, lalu masuk.',true);busy(false);APP.mode='login';return}
-      }else{r=await sb.auth.signInWithPassword({email:email,password:pass});if(r.error)throw r.error}
+      }else{
+        if(Date.now()<LOGIN_LOCK){authMsg('Terlalu banyak percobaan. Coba lagi dalam '+Math.ceil((LOGIN_LOCK-Date.now())/1000)+' detik.');busy(false);return}
+        r=await sb.auth.signInWithPassword({email:email,password:pass});
+        if(r.error){LOGIN_FAILS++;if(LOGIN_FAILS>=5){LOGIN_LOCK=Date.now()+60000;LOGIN_FAILS=0}throw r.error}
+        LOGIN_FAILS=0;
+      }
       APP.user=r.data.user||r.data.session.user;
       APP.phase='boot';draw();
       try{await afterLogin()}catch(err){fail(err)}
