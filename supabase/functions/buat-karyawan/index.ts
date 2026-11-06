@@ -30,14 +30,15 @@ Deno.serve(async (req) => {
 
     const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    // hanya pemilik toko itu yang boleh
-    const { data: mine } = await admin.from('members').select('role')
+    // hanya pemilik toko itu yang boleh. Dicek dengan hak akses si pemanggil sendiri (aturan akses RLS tetap berlaku).
+    const mine = await userClient.from('members').select('role')
       .eq('shop_id', b.shop).eq('user_id', user.id).maybeSingle()
-    if (!mine || mine.role !== 'owner') return json({ error: 'Hanya pemilik yang boleh menambah anggota.' }, 403)
+    if (mine.error) return json({ error: 'Gagal memeriksa peran: ' + mine.error.message }, 500)
+    if (!mine.data || mine.data.role !== 'owner') return json({ error: 'Hanya pemilik yang boleh menambah anggota.' }, 403)
 
     // batas anggota per toko
-    const { count } = await admin.from('members').select('user_id', { count: 'exact', head: true }).eq('shop_id', b.shop)
-    if ((count ?? 0) >= 20) return json({ error: 'Jumlah anggota sudah mencapai batas (20).' }, 400)
+    const cnt = await userClient.from('members').select('user_id', { count: 'exact', head: true }).eq('shop_id', b.shop)
+    if (!cnt.error && (cnt.count ?? 0) >= 20) return json({ error: 'Jumlah anggota sudah mencapai batas (20).' }, 400)
 
     const created = await admin.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata: { karyawan: true },
@@ -47,10 +48,10 @@ Deno.serve(async (req) => {
       if (m.includes('already') || m.includes('exists') || m.includes('registered')) {
         return json({ error: 'Email ini sudah punya akun. Kosongkan kolom password lalu tambahkan sebagai anggota.' }, 409)
       }
-      return json({ error: 'Akun belum bisa dibuat. Coba lagi.' }, 400)
+      return json({ error: 'Akun belum bisa dibuat: ' + (created.error?.message ?? 'tidak diketahui') }, 400)
     }
     const ins = await admin.from('members').insert({ shop_id: b.shop, user_id: created.data.user.id, role, name })
-    if (ins.error) return json({ error: 'Akun dibuat, tapi belum bisa dimasukkan ke toko. Hubungi admin.' }, 500)
+    if (ins.error) return json({ error: 'Akun dibuat, tapi belum bisa dimasukkan ke toko: ' + ins.error.message }, 500)
     return json({ ok: true })
   } catch (_e) {
     return json({ error: 'Terjadi kesalahan. Coba lagi.' }, 500)
