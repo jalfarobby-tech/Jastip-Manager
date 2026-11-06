@@ -39,7 +39,9 @@ Deno.serve(async (req) => {
     const { count } = await admin.from('members').select('user_id', { count: 'exact', head: true }).eq('shop_id', b.shop)
     if ((count ?? 0) >= 20) return json({ error: 'Jumlah anggota sudah mencapai batas (20).' }, 400)
 
-    const created = await admin.auth.admin.createUser({ email, password, email_confirm: true })
+    const created = await admin.auth.admin.createUser({
+      email, password, email_confirm: true, user_metadata: { karyawan: true },
+    })
     if (created.error || !created.data.user) {
       const m = String(created.error?.message ?? '').toLowerCase()
       if (m.includes('already') || m.includes('exists') || m.includes('registered')) {

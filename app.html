@@ -1288,6 +1288,11 @@ document.addEventListener('click',async function(e){
   else if(a==='rate-use'){var k=document.getElementById('t-kurs');if(k&&UI.rateUse){k.value=UI.rateUse;k.dispatchEvent(new Event('input',{bubbles:true}))}}
   else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
   else if(a==='export'){exportCsv()}
+  else if(a==='shopname'){
+    var sn=((document.getElementById('shop-name')||{}).value||'').trim();if(!sn){toast('Isi nama toko');return}
+    try{must(await sb.from('shops').update({name:sn}).eq('id',APP.shop.id));APP.shop.name=sn;toast('Nama toko disimpan');render()}
+    catch(err){toast('Belum bisa disimpan. Coba lagi.')}
+  }
   else if(a==='payinfo'){
     var pv=((document.getElementById('pay-info')||{}).value||'').trim();
     try{must(await sb.from('shops').update({pay_info:pv}).eq('id',APP.shop.id));APP.shop.pay=pv;toast(pv?'Info pembayaran disimpan':'Info pembayaran dikosongkan')}
@@ -1835,8 +1840,9 @@ function modalSettings(){
       '<p class="small muted"><b>Pencatat</b>: catat barang, pesanan, dan pembayaran. Tidak bisa melihat kurs, modal, atau untung.<br><b>Petugas belanja</b>: orang yang membeli barang di toko. Hanya melihat daftar belanja dan menandai barang yang sudah dibeli.</p>'+
       '<button class="btn" type="submit">Tambah anggota</button></form></div>';
   }
+  var nameBox=own?'<div class="stack"><div class="label">Nama toko</div><label class="field"><span>Tampil di aplikasi</span><input id="shop-name" maxlength="60" value="'+esc(APP.shop.name||'')+'"></label><button class="btn" data-oa="shopname">Simpan nama toko</button></div>':'';
   var payBox=own?'<div class="stack"><div class="label">Info pembayaran</div><label class="field"><span>Rekening atau e-wallet</span><textarea id="pay-info" rows="3" placeholder="BCA 1234567890 a.n. Nama\nDANA 0812xxxxxxx">'+esc(APP.shop.pay||'')+'</textarea><small>Ikut tercantum di pesan WhatsApp kalau pelanggan masih punya sisa tagihan.</small></label><button class="btn" data-oa="payinfo">Simpan info pembayaran</button>'+(APP.noDeliv?'<p class="small" style="color:var(--amber)">Fitur alur kirim belum aktif. Jalankan file SQL tambahan di Supabase (lihat README), lalu muat ulang.</p>':'')+'</div>':'';
-  return sheet('Pengaturan','<div class="sheet-bd">'+payBox+
+  return sheet('Pengaturan','<div class="sheet-bd">'+nameBox+payBox+
     '<div class="stack"><div class="label">Akun</div><div class="list"><div class="row" style="min-height:56px"><div class="grow"><div class="t">'+esc(APP.user.email)+'</div><div class="sub">'+esc(APP.shop.name)+' · '+ROLE_LABEL[S.role]+'</div></div><button class="btn sm" data-oa="logout">'+ico('logout')+'Keluar</button></div></div>'+
     '<button class="btn" data-oa="reload">Muat ulang data</button>'+(own?'<button class="btn" data-oa="export">Unduh tagihan trip ini (CSV)</button>':'')+'<button class="btn danger" data-oa="logout">Keluar</button></div>'+mem+'</div>'+
     '<div class="sheet-ft"><button class="btn primary" data-act="modal-close">Selesai</button></div>');
