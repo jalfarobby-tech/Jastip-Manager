@@ -616,14 +616,13 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .pick-more{padding:12px 14px;color:var(--muted);font-size:.85rem}
 .orow .pick{margin-top:0}
 .pick[data-k=cust] b{font:700 .95rem var(--f-body)}
+.sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
+@media(max-width:420px){.sheet-ft .btn svg{display:none}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div id="toast" class="toast" role="status" hidden></div>
-
-.sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
-@media(max-width:420px){.sheet-ft .btn svg{display:none}}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -866,6 +865,8 @@ var TAB_LABEL={home:'Beranda',barang:'Barang',belanja:'Belanja',tagihan:'Pelangg
 /* ================= ONLINE: Supabase, login, sinkron ================= */
 var CFG={url:'https://tibwgpqwroilzfyggyuz.supabase.co',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYndncHF3cm9pbHpmeWdneXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzE5NjYsImV4cCI6MjEwOTA0Nzk2Nn0.QIGkI8VDYlvnWFfudVE4WQHrCR6DOyRPwH3LwKr6bAY'};
+var ADMIN_WA='https://wa.me/628197284796?text='+encodeURIComponent('Halo Alfa Creative Persada, saya ingin membuat akun Jastip Manager.');
+function isOpen(){return !!window.JM_OPEN}   /* hanya diset oleh tes lokal; di produksi pendaftaran umum ditutup */
 var sb=null;
 var APP={phase:'boot',user:null,shop:null,role:null,mode:'login',err:'',members:null,sync:'ok',dirty:false,syncing:false,tm:null,lastPoll:0};
 var SNAP={};
@@ -1185,7 +1186,7 @@ function viewAuth(){
   var hero='<div class="auth-hero"><a class="auth-back" href="./">← Beranda</a><div class="auth-brand">'+logo(40)+'<span>Jastip Manager</span></div><h2 class="auth-h">Jastip yang rapi, dari chat sampai untung.</h2><ul class="auth-pts"><li>Impor pesanan langsung dari chat WhatsApp</li><li>Daftar belanja dan nota pelanggan otomatis</li><li>Untung tiap trip, hanya terlihat pemilik</li></ul></div>',brand='';
   if(p==='boot')h=brand+'<p class="muted" style="text-align:center">Memuat…</p>';
   else if(p==='auth'){
-    var up=APP.mode==='signup';
+    var up=APP.mode==='signup'&&isOpen();
     h=brand+'<h1>'+(up?'Buat akun':'Masuk')+'</h1>'+
     '<p class="muted">'+(up?'Daftar dengan email. Setelah itu kamu bisa membuat toko, atau minta pemilik toko menambahkanmu.':'Masuk untuk membuka data tokomu.')+'</p>'+
     '<form data-aform="'+(up?'signup':'login')+'" novalidate>'+
@@ -1193,16 +1194,14 @@ function viewAuth(){
     '<label class="field"><span>Password</span><span class="pw"><input id="a-pass" name="pass" type="password" autocomplete="'+(up?'new-password':'current-password')+'" minlength="8" required><button type="button" class="peek" data-oa="peek" aria-label="Tampilkan password">Lihat</button></span>'+(up?'<small>Minimal 8 karakter.</small>':'')+'</label>'+
     '<p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p>'+
     '<button class="btn primary block" type="submit" id="a-go">'+(up?'Daftar':'Masuk')+'</button></form>'+
-    (up?'':'<button class="btn text block" data-oa="forgot">Lupa password?</button>')+'<button class="btn text block" data-oa="mode">'+(up?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>';
+    (up?'':'<button class="btn text block" data-oa="forgot">Lupa password?</button>')+(isOpen()?'<button class="btn text block" data-oa="mode">'+(up?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>':'<p class="muted small" style="text-align:center;margin-top:14px">Belum punya akun? Akun dibuat oleh admin. <a href="'+ADMIN_WA+'" target="_blank" rel="noopener">Hubungi admin lewat WhatsApp</a></p>');
   }else if(p==='recover'){
     h=brand+'<h1>Buat password baru</h1><p class="muted">Masukkan password baru untuk akunmu.</p><form data-aform="recover" novalidate><label class="field"><span>Password baru</span><input id="a-pass" name="pass" type="password" autocomplete="new-password" minlength="8" required><small>Minimal 8 karakter.</small></label><p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p><button class="btn primary block" type="submit" id="a-go">Simpan password</button></form>';
   }else if(p==='noshop'){
-    h=brand+'<h1>Satu langkah lagi</h1><p class="muted">Masuk sebagai <b>'+esc(APP.user.email)+'</b>.</p>'+
-    '<form data-aform="shop" novalidate><label class="field"><span>Kamu pemilik toko? Beri nama tokonya</span><input id="a-shop" name="shop" placeholder="Contoh: Jastip Kakak" autocomplete="off" required></label>'+
-    '<p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p><button class="btn primary block" type="submit" id="a-go">Buat toko</button></form>'+
-    '<div class="auth-or"><span>atau</span></div>'+
-    '<p class="muted small">Kamu karyawan? Minta pemilik membuka Pengaturan → Anggota, lalu memasukkan emailmu ini dan memilih perannya. Setelah itu tekan tombol di bawah.</p>'+
-    '<button class="btn block" data-oa="recheck">Periksa lagi</button><button class="btn text block" data-oa="logout">Keluar</button>';
+    h=brand+'<h1>Akunmu belum terhubung ke toko</h1><p class="muted">Masuk sebagai <b>'+esc(APP.user.email)+'</b>.</p>'+
+    (isOpen()?'<form data-aform="shop" novalidate><label class="field"><span>Kamu pemilik toko? Beri nama tokonya</span><input id="a-shop" name="shop" placeholder="Contoh: Jastip Kakak" autocomplete="off" required></label><p class="auth-msg" id="auth-msg" role="alert" aria-live="polite"></p><button class="btn primary block" type="submit" id="a-go">Buat toko</button></form><div class="auth-or"><span>atau</span></div>':'')+
+    '<p class="muted small">Karyawan: minta pemilik toko membuka Pengaturan, lalu Anggota, dan menambahkan emailmu ini. Pemilik baru: hubungi admin untuk mengaktifkan tokomu. Setelah itu tekan tombol di bawah.</p>'+
+    '<button class="btn primary block" data-oa="recheck">Periksa lagi</button>'+(isOpen()?'':'<a class="btn block" href="'+ADMIN_WA+'" target="_blank" rel="noopener">Hubungi admin</a>')+'<button class="btn text block" data-oa="logout">Keluar</button>';
   }else{
     h=brand+'<h1>Tidak bisa memuat data</h1><p class="muted">'+esc(APP.err||'Coba lagi sebentar.')+'</p><button class="btn primary block" data-oa="recheck">Coba lagi</button><button class="btn text block" data-oa="logout">Keluar</button>';
   }
@@ -1321,9 +1320,24 @@ document.addEventListener('submit',async function(e){
   var f=e.target.closest('form[data-mform]');if(!f)return;e.preventDefault();
   var fd=Object.fromEntries(new FormData(f).entries());
   var email=(fd.email||'').trim().toLowerCase();if(!email)return;
-  var nm=(fd.name||'').trim()||email.split('@')[0];
-  try{must(await sb.rpc('add_member',{p_shop:APP.shop.id,p_email:email,p_role:fd.role,p_name:nm}));toast(nm+' ditambahkan sebagai '+ROLE_LABEL[fd.role].toLowerCase());await loadMembers()}
-  catch(err){toast(idErr(err))}
+  var nm=(fd.name||'').trim()||email.split('@')[0],pw=fd.pw||'',btn=f.querySelector('button[type=submit]');
+  if(pw&&pw.length<8){toast('Password minimal 8 karakter');return}
+  if(btn)btn.disabled=true;
+  try{
+    if(pw){
+      var r=await sb.functions.invoke('buat-karyawan',{body:{shop:APP.shop.id,email:email,password:pw,name:nm,role:fd.role}});
+      if(r.error){
+        var msg='';try{var j=await r.error.context.json();msg=j&&j.error||''}catch(x){}
+        if(!msg&&r.error.context&&r.error.context.status===404)msg='Fitur buat akun belum aktif. Hubungi admin, atau minta admin membuatkan akunnya.';
+        throw new Error(msg||'Akun belum bisa dibuat. Coba lagi, atau hubungi admin.');
+      }
+      toast('Akun '+nm+' dibuat. Berikan email dan password itu ke karyawan.');f.reset();
+    }else{
+      must(await sb.rpc('add_member',{p_shop:APP.shop.id,p_email:email,p_role:fd.role,p_name:nm}));toast(nm+' ditambahkan sebagai '+ROLE_LABEL[fd.role].toLowerCase());f.reset();
+    }
+    await loadMembers();
+  }catch(err){toast(idErr(err))}
+  finally{if(btn)btn.disabled=false}
 });
 async function loadMembers(){
   try{var r=must(await sb.from('members').select('user_id,role,name').eq('shop_id',APP.shop.id).order('role'));APP.members=r.data}catch(e){APP.members=[]}
@@ -1813,8 +1827,9 @@ function modalSettings(){
         (me?'<span class="muted small">'+ROLE_LABEL[m.role]+'</span>':'<select data-oachg="member-role" data-u="'+m.user_id+'" aria-label="Peran" style="width:auto;min-height:40px"><option value="pencatat"'+(m.role==='pencatat'?' selected':'')+'>Pencatat</option><option value="pembeli"'+(m.role==='pembeli'?' selected':'')+'>Petugas belanja</option><option value="owner"'+(m.role==='owner'?' selected':'')+'>Pemilik</option></select>'+
         '<button class="btn sm text" data-oa="member-del" data-u="'+m.user_id+'">'+(armed('mem-'+m.user_id)?'Yakin hapus?':'Hapus')+'</button>')+'</div>'}).join('');
     mem='<div class="stack"><div class="label">Anggota</div><div class="list">'+list+'</div>'+
-      '<form data-mform="1" autocomplete="off" class="stack"><p class="small muted">Karyawan mendaftar dulu di aplikasi ini dengan emailnya. Setelah itu masukkan emailnya di sini dan pilih perannya.</p>'+
+      '<form data-mform="1" autocomplete="off" class="stack"><p class="small muted">Buat akun untuk karyawanmu: isi email dan password awal, lalu berikan keduanya ke karyawan. Kalau karyawan sudah punya akun, kosongkan password.</p>'+
       '<label class="field"><span>Email karyawan</span><input name="email" type="email" inputmode="email" autocapitalize="off" required placeholder="nama@email.com"></label>'+
+      '<label class="field"><span>Password awal</span><input name="pw" type="text" autocomplete="off" autocapitalize="off" minlength="8" placeholder="Minimal 8 karakter"><small>Kosongkan kalau karyawan sudah punya akun.</small></label>'+
       '<div class="grid2"><label class="field"><span>Nama</span><input name="name" placeholder="Contoh: Dewi"></label>'+
       '<label class="field"><span>Peran</span><select name="role"><option value="pencatat">Pencatat</option><option value="pembeli">Petugas belanja</option></select></label></div>'+
       '<p class="small muted"><b>Pencatat</b>: catat barang, pesanan, dan pembayaran. Tidak bisa melihat kurs, modal, atau untung.<br><b>Petugas belanja</b>: orang yang membeli barang di toko. Hanya melihat daftar belanja dan menandai barang yang sudah dibeli.</p>'+
@@ -1837,7 +1852,7 @@ function render(){
   if(!C)body=viewEmpty();
   else body=UI.tab==='home'?viewHome(C):UI.tab==='barang'?viewBarang(C):UI.tab==='belanja'?viewBelanja(C):viewTagihan(C);
   var m=UI.modal,modal='';
-  if(m){var ty=m.type;modal=ty==='trip-new'?modalTrip(false):ty==='trip-edit'?modalTrip(true):ty==='settings'?modalSettings():ty==='help'?modalHelp():!C?'':ty==='item-bulk'?modalBulk(C):ty==='item-new'?modalItem(C,false):ty==='item'?modalItem(C,true):ty==='line-new'?modalOrder(C):ty==='import'?modalImport(C):ty==='shop'?modalShop(C):ty==='logout'?modalLogout():ty==='cust'?modalCust(C):''}
+  if(m){var ty=m.type;modal=ty==='trip-new'?modalTrip(false):ty==='trip-edit'?modalTrip(true):ty==='settings'?modalSettings():ty==='help'?modalHelp():ty==='logout'?modalLogout():!C?'':ty==='item-bulk'?modalBulk(C):ty==='item-new'?modalItem(C,false):ty==='item'?modalItem(C,true):ty==='line-new'?modalOrder(C):ty==='import'?modalImport(C):ty==='shop'?modalShop(C):ty==='logout'?modalLogout():ty==='cust'?modalCust(C):''}
   var y=window.scrollY,sy=0,sh=document.querySelector('.sheet-bd');if(sh)sy=sh.scrollTop;
   var fab=!m&&C&&UI.tab==='barang'?'<button class="fab" data-act="item-new" aria-label="Tambah barang">'+ico('plus')+'Barang</button>':!m&&C&&UI.tab==='tagihan'?'<button class="fab" data-act="line-new" aria-label="Tambah pesanan">'+ico('plus')+'Pesanan</button>':'';
   app.innerHTML=viewHeader()+'<div class="shell">'+(C?viewNav(C):'<span></span>')+'<main>'+viewBanner()+body+'</main></div>'+fab+modal;
