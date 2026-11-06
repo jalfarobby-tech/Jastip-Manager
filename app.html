@@ -897,19 +897,6 @@ async function rateFill(force){
   if(force||!(cur>0)){k.value=use;k.dispatchEvent(new Event('input',{bubbles:true}))}
   h2.innerHTML='Kurs pasar hari ini: <b>1 '+esc(code)+' = Rp'+nf(r.rate)+'</b>. Terisi Rp'+nf(use)+' (ditambah '+CUSHION+'% sebagai pengaman, karena kurs bank atau kartu biasanya lebih tinggi). <button type="button" class="linkbtn" data-oa="rate-use">Pakai angka ini</button>';
 }
-function csvCell(x){x=String(x==null?'':x);return /[",\n;]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}
-function exportCsv(){
-  var t=curTrip();if(!t){toast('Belum ada trip');return}
-  var C=calc(t.id),rows=[['Pelanggan','Kode','Barang','Jumlah','Harga satuan (Rp)','Subtotal (Rp)','Status barang','Total tagihan (Rp)','Dibayar (Rp)','Sisa (Rp)']];
-  C.custs.forEach(function(c){
-    if(!c.rows.length)rows.push([c.c.nama,'','','','','','',c.tagihan,c.paid,c.sisa]);
-    c.rows.forEach(function(r,i){rows.push([c.c.nama,r.item.kode,r.item.nama,r.qty,r.price,r.sub,r.done?'Sudah dibeli':'Belum dibeli',i===0?c.tagihan:'',i===0?c.paid:'',i===0?c.sisa:''])});
-  });
-  var csv='\ufeff'+rows.map(function(r){return r.map(csvCell).join(',')}).join('\r\n');
-  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download='tagihan-'+t.nama.replace(/[^\w]+/g,'-').toLowerCase()+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
-  toast('File CSV diunduh');
-}
 var ROLE_LABEL={owner:'Pemilik',pencatat:'Pencatat',pembeli:'Petugas belanja'};
 
 var TBL=[
@@ -1370,7 +1357,6 @@ document.addEventListener('click',async function(e){
   else if(a==='recheck'){APP.phase='boot';draw();try{await afterLogin()}catch(err){fail(err)}}
   else if(a==='rate-use'){var k=document.getElementById('t-kurs');if(k&&UI.rateUse){k.value=UI.rateUse;k.dispatchEvent(new Event('input',{bubbles:true}))}}
   else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
-  else if(a==='export'){exportCsv()}
   else if(a==='backup'){
     var bb=el;if(bb.disabled)return;bb.disabled=true;var old=bb.textContent;bb.textContent='Menyiapkan...';
     try{var nm=await exportCadangan();toast('Cadangan diunduh: '+nm)}
@@ -1934,7 +1920,7 @@ function modalSettings(){
   var payBox=own?'<div class="stack"><div class="label">Info pembayaran</div><label class="field"><span>Rekening atau e-wallet</span><textarea id="pay-info" rows="3" placeholder="BCA 1234567890 a.n. Nama\nDANA 0812xxxxxxx">'+esc(APP.shop.pay||'')+'</textarea><small>Ikut tercantum di pesan WhatsApp kalau pelanggan masih punya sisa tagihan.</small></label><button class="btn" data-oa="payinfo">Simpan info pembayaran</button>'+(APP.noDeliv?'<p class="small" style="color:var(--amber)">Fitur alur kirim belum aktif. Jalankan file SQL tambahan di Supabase (lihat README), lalu muat ulang.</p>':'')+'</div>':'';
   return sheet('Pengaturan','<div class="sheet-bd">'+nameBox+payBox+backupBox+
     '<div class="stack"><div class="label">Akun</div><div class="list"><div class="row" style="min-height:56px"><div class="grow"><div class="t">'+esc(APP.user.email)+'</div><div class="sub">'+esc(APP.shop.name)+' · '+ROLE_LABEL[S.role]+'</div></div><button class="btn sm" data-oa="logout">'+ico('logout')+'Keluar</button></div></div>'+
-    '<button class="btn" data-oa="reload">Muat ulang data</button>'+(own?'<button class="btn" data-oa="export">Unduh tagihan trip ini (CSV)</button>':'')+'<button class="btn danger" data-oa="logout">Keluar</button></div>'+mem+'</div>'+
+    '<button class="btn" data-oa="reload">Muat ulang data</button>'+'<button class="btn danger" data-oa="logout">Keluar</button></div>'+mem+'</div>'+
     '<div class="sheet-ft"><button class="btn primary" data-act="modal-close">Selesai</button></div>');
 }
 
