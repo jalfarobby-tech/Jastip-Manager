@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 1 * * *'
   workflow_dispatch:
+permissions:
+  actions: write
 jobs:
   kirim:
     runs-on: ubuntu-latest
@@ -16,3 +18,11 @@ jobs:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
         run: python3 database/bot_telegram.py
+      - name: Jaga jadwal tetap aktif
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for w in keepalive.yml telegram.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$w/enable" || true
+          done
