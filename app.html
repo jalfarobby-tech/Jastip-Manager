@@ -1116,6 +1116,82 @@ async function loadAll(o){
   S=ns;
   SNAP=rowsOf();
 }
+
+/* ---------- cadangan: semua data toko jadi satu berkas Excel ---------- */
+function loadScript(src){return new Promise(function(ok,no){var el=document.createElement('script');el.src=src;el.onload=ok;el.onerror=function(){no(new Error('lib'))};document.head.appendChild(el)})}
+async function tryCols(table,base,extra,ord,mod){
+  if(!extra)return fetchAll(table,base,ord,mod);
+  try{return await fetchAll(table,base+','+extra,ord,mod)}catch(e){return fetchAll(table,base,ord,mod)}
+}
+async function exportCadangan(){
+  if(!APP.shop||APP.role!=='owner')return;
+  if(!window.ExcelJS)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js');
+  var sid=APP.shop.id,byShop=function(q){return q.eq('shop_id',sid)};
+  var R=await Promise.all([
+    fetchAll('trips','id,name,currency,deadline,created_at','id',byShop),
+    fetchAll('trip_pricing','*','trip_id',byShop),
+    fetchAll('customers','id,name,phone','id',byShop),
+    tryCols('items','id,trip_id,code,name,store,price,sell_price,stock_cap,status,bought_qty','sell_fixed','id',byShop),
+    tryCols('order_lines','id,trip_id,customer_id,code,qty,ordered_at,cancelled,source','released','id',byShop),
+    fetchAll('payments','id,trip_id,customer_id,amount,note,paid_at','id',byShop)
+  ]);
+  var pur={};
+  var ids=R[3].filter(function(i){return i.status==='dibeli'}).map(function(i){return i.id});
+  var rs=await Promise.all(chunk(ids,120).map(function(part){return sb.from('item_purchases').select('item_id,actual_price').in('item_id',part)}));
+  rs.forEach(function(r){must(r).data.forEach(function(x){pur[x.item_id]=+x.actual_price})});
+  var pr={};R[1].forEach(function(x){pr[x.trip_id]=x});
+  var trips=R[0].sort(function(a,b){return a.created_at<b.created_at?1:-1}).map(function(t){var q=pr[t.id]||{};return {id:t.id,nama:t.name,mata:t.currency,deadline:t.deadline||'',kurs:q.rate!=null?+q.rate:0,feePct:+q.fee_pct||0,feeFlat:+q.fee_flat||0,round:+q.round_to||1,biayaLain:+q.extra_cost||0}});
+  var custs=R[2].map(function(c){return {id:c.id,nama:c.name,hp:c.phone||''}});
+  var items=R[3].map(function(i){var x={id:i.id,trip:i.trip_id,kode:i.code,nama:i.name,toko:i.store||'',harga:+i.price,stok:i.stock_cap==null?'':+i.stock_cap,status:i.status,sell:i.sell_price==null?null:+i.sell_price,fix:i.sell_fixed==null?null:+i.sell_fixed};if(i.bought_qty!=null)x.boughtQty=+i.bought_qty;if(pur[i.id]!=null)x.aktual=pur[i.id];return x});
+  var lines=R[4].map(function(l){return {id:l.id,trip:l.trip_id,cust:l.customer_id,kode:l.code,qty:l.qty,t:Date.parse(l.ordered_at),batal:!!l.cancelled,src:l.source,rel:l.released!==false}});
+  var pays=R[5].map(function(p){return {id:p.id,trip:p.trip_id,cust:p.customer_id,amt:+p.amount,note:p.note||'',t:Date.parse(p.paid_at)}});
+  var stageLbl={};STAGE.forEach(function(g){stageLbl[g[0]]=g[1]});stageLbl.none='-';
+  var cname={};custs.forEach(function(c){cname[c.id]=c});
+  var tname={};trips.forEach(function(t){tname[t.id]=t.nama});
+  var rowsRing=[],rowsTag=[],rowsPes=[],saveS=S;
+  S=Object.assign({},S,{trips:trips,customers:custs,items:items,lines:lines,payments:pays,deliv:S.deliv||[]});
+  try{
+    trips.forEach(function(t){
+      var C=calc(t.id),tag=0,paid=0,sisa=0;
+      C.custs.forEach(function(k){
+        tag+=k.tagihan;paid+=k.paid;sisa+=Math.max(k.sisa,0);
+        rowsTag.push([t.nama,k.c.nama,k.c.hp||'',k.tagihan,k.paid,k.sisa,stageLbl[k.stage]||'']);
+        k.rows.forEach(function(r){rowsPes.push([t.nama,k.c.nama,r.item.kode,r.item.nama,r.item.toko,r.qty,r.price,r.sub,r.done?'Sudah dibeli':'Belum dibeli'])});
+        k.hold.forEach(function(r){rowsPes.push([t.nama,k.c.nama,r.item.kode,r.item.nama,r.item.toko,r.qty,r.price,r.sub,'Menunggu pembayaran'])});
+      });
+      rowsRing.push([t.nama,t.mata||'',t.deadline||'',C.custs.length,C.items.length,tag,paid,sisa,C.tot.estCost]);
+    });
+  }finally{S=saveS}
+  var tripOf={};trips.forEach(function(t){tripOf[t.id]=t});
+  var rowsPay=pays.slice().sort(function(a,b){return a.t-b.t}).map(function(p){return [tname[p.trip]||'',(cname[p.cust]||{}).nama||'',new Date(p.t),p.amt,p.note]});
+  var rowsItem=items.map(function(i){var t=tripOf[i.trip]||{};return [t.nama||'',i.kode,i.nama,i.toko,i.harga,t.mata||'',unitPrice(t,i),i.stok,i.status==='dibeli'?'Sudah dibeli':'Belum dibeli',i.boughtQty==null?'':i.boughtQty,i.aktual==null?'':i.aktual]});
+  var rowsCust=custs.slice().sort(function(a,b){return natCmp(a.nama,b.nama)}).map(function(c){return [c.nama,c.hp]});
+  var wb=new ExcelJS.Workbook();wb.creator='Jastip Manager';wb.created=new Date();
+  function sheet(name,cols,rows,money){
+    var ws=wb.addWorksheet(name,{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=cols.map(function(c){return {header:c[0],width:c[1]}});
+    rows.forEach(function(r){ws.addRow(r)});
+    var hd=ws.getRow(1);hd.height=22;
+    hd.eachCell(function(c){c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F2F8F'}};c.alignment={vertical:'middle',wrapText:true}});
+    (money||[]).forEach(function(ci){ws.getColumn(ci).numFmt='#,##0';ws.getColumn(ci).alignment={horizontal:'right'}});
+    ws.eachRow(function(row,n){if(n>1&&n%2===0)row.eachCell(function(c){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF3F5FB'}}})});
+    if(rows.length)ws.autoFilter={from:{row:1,column:1},to:{row:1,column:cols.length}};
+    return ws;
+  }
+  sheet('Ringkasan',[['Trip',26],['Mata uang',11],['Deadline',13],['Pelanggan',11],['Jenis barang',12],['Total tagihan (Rp)',18],['Uang masuk (Rp)',18],['Sisa tagihan (Rp)',20],['Modal perkiraan (Rp)',23]],rowsRing,[6,7,8,9]);
+  sheet('Tagihan',[['Trip',24],['Pelanggan',22],['WhatsApp',16],['Total tagihan (Rp)',18],['Dibayar (Rp)',15],['Sisa (Rp)',14],['Status',20]],rowsTag,[4,5,6]);
+  sheet('Pesanan',[['Trip',24],['Pelanggan',22],['Kode',10],['Barang',32],['Toko / lantai',24],['Jumlah',9],['Harga satuan (Rp)',17],['Subtotal (Rp)',15],['Status',20]],rowsPes,[7,8]);
+  sheet('Pembayaran',[['Trip',24],['Pelanggan',22],['Tanggal',18],['Jumlah (Rp)',15],['Catatan',30]],rowsPay,[4]).getColumn(3).numFmt='dd/mm/yyyy hh:mm';
+  sheet('Barang',[['Trip',24],['Kode',10],['Nama',32],['Toko / lantai',24],['Harga beli (mata uang trip)',22],['Mata uang',10],['Harga jual (Rp)',15],['Stok maks',10],['Status',14],['Jumlah dibeli',13],['Harga aktual',13]],rowsItem,[5,7,11]);
+  sheet('Pelanggan',[['Nama',26],['WhatsApp',18]],rowsCust);
+  var buf=await wb.xlsx.writeBuffer();
+  var d=new Date(),pad=function(n){return String(n).padStart(2,'0')};
+  var nm='cadangan-'+String(APP.shop.name||'toko').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.xlsx';
+  var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);
+  return nm;
+}
 async function switchTrip(tid){
   for(var n=0;n<40&&(APP.dirty||APP.syncing);n++){if(APP.dirty&&!APP.syncing)await flush();else await new Promise(function(r){setTimeout(r,150)})}
   S.cur=tid||null;try{if(tid)localStorage.setItem(curKey(),tid)}catch(e){}
@@ -1288,6 +1364,12 @@ document.addEventListener('click',async function(e){
   else if(a==='rate-use'){var k=document.getElementById('t-kurs');if(k&&UI.rateUse){k.value=UI.rateUse;k.dispatchEvent(new Event('input',{bubbles:true}))}}
   else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
   else if(a==='export'){exportCsv()}
+  else if(a==='backup'){
+    var bb=el;if(bb.disabled)return;bb.disabled=true;var old=bb.textContent;bb.textContent='Menyiapkan...';
+    try{var nm=await exportCadangan();toast('Cadangan diunduh: '+nm)}
+    catch(err){toast(err&&err.message==='lib'?'Belum bisa menyiapkan berkas Excel. Periksa koneksi lalu coba lagi.':'Cadangan belum berhasil. Coba lagi.')}
+    finally{bb.disabled=false;bb.textContent=old}
+  }
   else if(a==='shopname'){
     var sn=((document.getElementById('shop-name')||{}).value||'').trim();if(!sn){toast('Isi nama toko');return}
     try{must(await sb.from('shops').update({name:sn}).eq('id',APP.shop.id));APP.shop.name=sn;toast('Nama toko disimpan');render()}
@@ -1840,9 +1922,10 @@ function modalSettings(){
       '<p class="small muted"><b>Pencatat</b>: catat barang, pesanan, dan pembayaran. Tidak bisa melihat kurs, modal, atau untung.<br><b>Petugas belanja</b>: orang yang membeli barang di toko. Hanya melihat daftar belanja dan menandai barang yang sudah dibeli.</p>'+
       '<button class="btn" type="submit">Tambah anggota</button></form></div>';
   }
+  var backupBox=own?'<div class="stack"><div class="label">Cadangan data</div><p class="small muted" style="margin:0">Unduh semua trip, pesanan, tagihan, dan pembayaran dalam satu berkas Excel. Simpan sebulan sekali.</p><button class="btn" data-oa="backup">Unduh cadangan (Excel)</button></div>':'';
   var nameBox=own?'<div class="stack"><div class="label">Nama toko</div><label class="field"><span>Tampil di aplikasi</span><input id="shop-name" maxlength="60" value="'+esc(APP.shop.name||'')+'"></label><button class="btn" data-oa="shopname">Simpan nama toko</button></div>':'';
   var payBox=own?'<div class="stack"><div class="label">Info pembayaran</div><label class="field"><span>Rekening atau e-wallet</span><textarea id="pay-info" rows="3" placeholder="BCA 1234567890 a.n. Nama\nDANA 0812xxxxxxx">'+esc(APP.shop.pay||'')+'</textarea><small>Ikut tercantum di pesan WhatsApp kalau pelanggan masih punya sisa tagihan.</small></label><button class="btn" data-oa="payinfo">Simpan info pembayaran</button>'+(APP.noDeliv?'<p class="small" style="color:var(--amber)">Fitur alur kirim belum aktif. Jalankan file SQL tambahan di Supabase (lihat README), lalu muat ulang.</p>':'')+'</div>':'';
-  return sheet('Pengaturan','<div class="sheet-bd">'+nameBox+payBox+
+  return sheet('Pengaturan','<div class="sheet-bd">'+nameBox+payBox+backupBox+
     '<div class="stack"><div class="label">Akun</div><div class="list"><div class="row" style="min-height:56px"><div class="grow"><div class="t">'+esc(APP.user.email)+'</div><div class="sub">'+esc(APP.shop.name)+' · '+ROLE_LABEL[S.role]+'</div></div><button class="btn sm" data-oa="logout">'+ico('logout')+'Keluar</button></div></div>'+
     '<button class="btn" data-oa="reload">Muat ulang data</button>'+(own?'<button class="btn" data-oa="export">Unduh tagihan trip ini (CSV)</button>':'')+'<button class="btn danger" data-oa="logout">Keluar</button></div>'+mem+'</div>'+
     '<div class="sheet-ft"><button class="btn primary" data-act="modal-close">Selesai</button></div>');
