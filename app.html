@@ -1444,7 +1444,7 @@ document.addEventListener('submit',async function(e){
         if(!msg&&r.error.context&&r.error.context.status===404)msg='Fitur buat akun belum aktif. Hubungi admin, atau minta admin membuatkan akunnya.';
         throw new Error(msg||'Akun belum bisa dibuat. Coba lagi, atau hubungi admin.');
       }
-      toast('Akun '+nm+' dibuat. Berikan email dan password itu ke karyawan.');f.reset();
+      toast(r.data&&r.data.existing?nm+' ditambahkan. Email ini sudah punya akun, jadi pakai password lamanya.':'Akun '+nm+' dibuat. Berikan email dan password itu ke karyawan.');f.reset();
     }else{
       must(await sb.rpc('add_member',{p_shop:APP.shop.id,p_email:email,p_role:fd.role,p_name:nm}));toast(nm+' ditambahkan sebagai '+ROLE_LABEL[fd.role].toLowerCase());f.reset();
     }

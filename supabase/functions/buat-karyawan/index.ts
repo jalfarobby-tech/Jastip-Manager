@@ -40,18 +40,30 @@ Deno.serve(async (req) => {
     const cnt = await userClient.from('members').select('user_id', { count: 'exact', head: true }).eq('shop_id', b.shop)
     if (!cnt.error && (cnt.count ?? 0) >= 20) return json({ error: 'Jumlah anggota sudah mencapai batas (20).' }, 400)
 
+    const addMember = async () => {
+      const r = await userClient.rpc('add_member', { p_shop: b.shop, p_email: email, p_role: role, p_name: name })
+      return r.error ? r.error.message : ''
+    }
+
     const created = await admin.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata: { karyawan: true },
     })
     if (created.error || !created.data.user) {
       const m = String(created.error?.message ?? '').toLowerCase()
       if (m.includes('already') || m.includes('exists') || m.includes('registered')) {
-        return json({ error: 'Email ini sudah punya akun. Kosongkan kolom password lalu tambahkan sebagai anggota.' }, 409)
+        // Email sudah punya akun: cukup masukkan sebagai anggota toko ini.
+        const err = await addMember()
+        if (err) return json({ error: 'Belum bisa menambahkan anggota: ' + err }, 400)
+        return json({ ok: true, existing: true })
       }
       return json({ error: 'Akun belum bisa dibuat: ' + (created.error?.message ?? 'tidak diketahui') }, 400)
     }
-    const ins = await admin.from('members').insert({ shop_id: b.shop, user_id: created.data.user.id, role, name })
-    if (ins.error) return json({ error: 'Akun dibuat, tapi belum bisa dimasukkan ke toko: ' + ins.error.message }, 500)
+    const err = await addMember()
+    if (err) {
+      // Batalkan akun yang baru dibuat supaya percobaan berikutnya bersih.
+      await admin.auth.admin.deleteUser(created.data.user.id)
+      return json({ error: 'Belum bisa menambahkan anggota: ' + err }, 500)
+    }
     return json({ ok: true })
   } catch (_e) {
     return json({ error: 'Terjadi kesalahan. Coba lagi.' }, 500)
