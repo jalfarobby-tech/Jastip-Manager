@@ -618,13 +618,24 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .pick-more{padding:12px 14px;color:var(--muted);font-size:.85rem}
 .orow .pick{margin-top:0}
 .pick[data-k=cust] b{font:700 .95rem var(--f-body)}
-html.net::before{content:"";position:fixed;left:0;top:0;height:3px;width:100%;z-index:9999;background:linear-gradient(90deg,transparent,var(--accent,#2740d8),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:netbar 1.1s ease-in-out infinite}
+.busy-c{display:none}
+html.net::before{content:"";position:fixed;left:0;top:0;height:2px;width:100%;z-index:9999;background:linear-gradient(90deg,transparent,var(--accent,#2740d8),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:netbar 1.1s ease-in-out infinite;opacity:.7}
 @keyframes netbar{from{background-position:-40% 0}to{background-position:140% 0}}
-html.netslow::after{content:"Masih memproses, mohon tunggu…";position:fixed;left:50%;top:66px;transform:translateX(-50%);z-index:9999;width:max-content;max-width:calc(100vw - 32px);padding:10px 18px;border-radius:99px;background:#0b1030;color:#fff;font-family:inherit;font-weight:600;font-size:.85rem;line-height:1.3;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);text-align:center}
+.busy{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(11,16,48,.34);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:busyin .18s ease-out both}
+.busy[hidden]{display:none!important}
+.busy.lock-off{pointer-events:none;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+.busy .busy-c{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:210px;max-width:min(320px,86vw);padding:26px 28px 22px;border-radius:22px;background:var(--surface,#fff);color:var(--ink,#111);box-shadow:0 24px 60px -18px rgba(0,0,0,.55);text-align:center;pointer-events:auto}
+.busy b{font-size:1.02rem;font-weight:700;line-height:1.3}
+.busy small{display:block;font-size:.84rem;line-height:1.4;color:var(--muted,#667);min-height:0}
+.busy small:empty{display:none}
+.busy-sp{width:38px;height:38px;border-radius:50%;border:4px solid color-mix(in srgb,var(--accent,#2740d8) 22%,transparent);border-top-color:var(--accent,#2740d8);animation:spin .8s linear infinite;margin-bottom:6px}
+.busy.ok .busy-sp{animation:none;border-color:var(--accent,#2740d8);background:var(--accent,#2740d8) center/20px 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");transform:scale(1);animation:busyok .28s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes busyin{from{opacity:0}to{opacity:1}}
+@keyframes busyok{from{transform:scale(.6)}to{transform:scale(1)}}
 .btn.pend{pointer-events:none;opacity:.75;position:relative}
 .btn.pend::after{content:"";display:inline-block;width:14px;height:14px;margin-left:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){html.net::before{animation:none;background:var(--accent,#2740d8);opacity:.6}.btn.pend::after{animation-duration:1.6s}}
+@media(prefers-reduced-motion:reduce){html.net::before{animation:none;background:var(--accent,#2740d8);opacity:.6}.btn.pend::after,.busy-sp{animation-duration:1.8s}.busy{animation:none}}
 .sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
 @media(max-width:420px){.sheet-ft .btn svg{display:none}}
 </style>
@@ -896,31 +907,84 @@ var CFG={url:'https://tibwgpqwroilzfyggyuz.supabase.co',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYndncHF3cm9pbHpmeWdneXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0NzE5NjYsImV4cCI6MjEwOTA0Nzk2Nn0.QIGkI8VDYlvnWFfudVE4WQHrCR6DOyRPwH3LwKr6bAY'};
 var ADMIN_WA='https://wa.me/628197284796?text='+encodeURIComponent('Halo Alfa Creative Persada, saya ingin membuat akun Jastip Manager.');
 function isOpen(){return !!window.JM_OPEN}   /* hanya diset oleh tes lokal; di produksi pendaftaran umum ditutup */
-/* indikator proses: setiap permintaan ke server memunculkan garis di atas layar bila lebih dari 0,3 detik,
-   dan pesan "masih memproses" bila lebih dari 2,5 detik. Tombol yang baru ditekan dikunci sementara agar tidak terkirim dua kali. */
-(function(){
-  var n=0,t=0,sl=0,f=window.fetch,H=document.documentElement,host=CFG.url.replace(/^https?:\/\//,'');
-  if(!f)return;
+/* indikator proses: tindakan pengguna yang menunggu server (lebih dari 0,4 detik) memunculkan kartu di tengah layar
+   yang menyebut apa yang sedang dikerjakan, menahan ketukan ganda, lalu menampilkan centang "Selesai".
+   Sinkron latar belakang hanya menampilkan garis tipis di atas layar. */
+var JMBusy=(function(){
+  var n=0,tOn=0,tSlow=0,tHide=0,tMax=0,tBar=0,f=window.fetch,H=document.documentElement,host=CFG.url.replace(/^https?:\/\//,'');
+  var userAt=0,label='Memproses…',user=false,shownAt=0,bad=false,holds=0,card=null;
+  function el(){
+    if(card)return card;
+    card=document.createElement('div');card.id='busy';card.className='busy';card.hidden=true;
+    card.setAttribute('role','status');card.setAttribute('aria-live','polite');
+    card.innerHTML='<div class="busy-c"><i class="busy-sp" aria-hidden="true"></i><b></b><small></small></div>';
+    document.body.appendChild(card);return card}
+  function setTxt(t,s){var c=el();c.querySelector('b').textContent=t;c.querySelector('small').textContent=s||''}
+  function show(){
+    var c=el();if(!c.hidden)return;
+    c.classList.remove('ok','lock-off');setTxt(label,'');c.hidden=false;shownAt=Date.now();
+    clearTimeout(tSlow);tSlow=setTimeout(function(){if(!c.hidden&&!c.classList.contains('ok'))setTxt(label,'Masih berjalan. Mohon jangan tutup halaman ini.')},2500);
+    clearTimeout(tMax);tMax=setTimeout(function(){if(!c.hidden){c.classList.add('lock-off');setTxt('Koneksi sedang lambat','Kalau tidak selesai, tutup lalu coba lagi.')}},25000);
+  }
+  function hideNow(){clearTimeout(tSlow);clearTimeout(tMax);if(card){card.hidden=true;card.classList.remove('ok','lock-off')}}
+  function finish(){
+    if(n>0||holds>0)return;
+    clearTimeout(tOn);clearTimeout(tBar);H.classList.remove('net');
+    if(!card||card.hidden){clearPend();return}
+    var wait=Math.max(0,500-(Date.now()-shownAt));
+    clearTimeout(tHide);
+    tHide=setTimeout(function(){
+      if(n>0||holds>0)return;
+      if(bad){hideNow();clearPend();return}
+      card.classList.add('ok');setTxt('Selesai','');
+      tHide=setTimeout(function(){if(n>0||holds>0)return;hideNow();clearPend()},650);
+    },wait+350);
+  }
   function clearPend(){[].forEach.call(document.querySelectorAll('.btn.pend'),function(b){b.classList.remove('pend')})}
-  function on(){n++;if(n===1){clearTimeout(t);t=setTimeout(function(){H.classList.add('net')},300)}clearTimeout(sl);sl=setTimeout(function(){if(n>0)H.classList.add('netslow')},2500)}
-  function off(){n=Math.max(0,n-1);if(n===0){clearTimeout(t);clearTimeout(sl);H.classList.remove('net','netslow');setTimeout(clearPend,150)}}
-  window.fetch=function(u){
-    var url=String(u&&u.url||u||'');
-    if(url.indexOf(host)<0)return f.apply(this,arguments);
-    on();
-    return f.apply(this,arguments).then(function(r){off();return r},function(e){off();throw e});
-  };
-  document.addEventListener('submit',function(e){
+  function begin(){
+    clearTimeout(tHide);
+    if(card&&card.classList.contains('ok')){card.classList.remove('ok');setTxt(label,'')}
+    var fresh=!card||card.hidden;
+    if(n+holds===1&&fresh){user=Date.now()-userAt<4000;bad=false}
+    if(user){if(fresh){clearTimeout(tOn);tOn=setTimeout(show,400)}}
+    else{clearTimeout(tBar);tBar=setTimeout(function(){H.classList.add('net')},300)}
+  }
+  function lbl(t){
+    var q=t.closest?t:t.parentNode;if(!q||!q.closest)return 'Memproses…';
+    var x;
+    if(q.closest('form[data-mform]'))return 'Menambahkan anggota…';
+    if((x=q.closest('[data-oa]'))){return ({backup:'Menyiapkan cadangan Excel…',shopname:'Menyimpan nama toko…',payinfo:'Menyimpan info pembayaran…','member-del':'Menghapus anggota…',reload:'Memuat ulang data…','logout-yes':'Keluar…',forgot:'Mengirim tautan…',mode:'Memproses…'})[x.dataset.oa]||'Memproses…'}
+    if((x=q.closest('[data-oachg]')))return x.dataset.oachg==='member-role'?'Mengubah peran…':'Menyimpan…';
+    if((x=q.closest('form[data-form]'))){var k=x.dataset.form;return /item/.test(k)?'Menyimpan barang…':/line|order/.test(k)?'Menyimpan pesanan…':/trip/.test(k)?'Menyimpan trip…':'Menyimpan…'}
+    if((x=q.closest('[data-act]'))){return ({pay:'Menyimpan pembayaran…','pay-full':'Menyimpan pembayaran…','pay-del':'Menghapus pembayaran…','item-del':'Menghapus barang…','trip-del':'Menghapus trip…',buy:'Menyimpan pembelian…',ship:'Menyimpan status pengiriman…'})[x.dataset.act]||'Menyimpan…'}
+    if(q.closest('#a-go,.auth-card form,form'))return 'Memeriksa akun…';
+    return 'Memproses…'}
+  function mark(e){var t=e.target;if(!t||!t.closest)return;
+    var x=t.closest('[data-act],[data-oa],[data-oachg],[data-tab],button,#a-go,form');if(!x)return;
+    var a=x.dataset&&x.dataset.act;
+    if(a==='modal-close'||a==='modal-bg'||a==='tab'||(x.dataset&&x.dataset.tab!=null&&!a&&!x.dataset.oa))return;
+    userAt=Date.now();label=lbl(t)}
+  document.addEventListener('click',mark,true);
+  document.addEventListener('change',mark,true);
+  document.addEventListener('submit',function(e){userAt=Date.now();label=lbl(e.target);
     var b=e.target&&e.target.querySelector&&e.target.querySelector('button[type=submit].btn');
     if(!b||e.target.dataset.aform)return;
-    b.classList.add('pend');
-    setTimeout(function(){if(!n)clearPend()},1500);
-  },true);
+    b.classList.add('pend');setTimeout(function(){if(!n&&!holds)clearPend()},1500)},true);
   document.addEventListener('click',function(e){
     var b=e.target.closest&&e.target.closest('.sheet-ft .btn[data-act]');
     if(!b||b.dataset.act==='modal-close')return;
-    b.classList.add('pend');setTimeout(function(){if(!n)clearPend()},1500);
-  },true);
+    b.classList.add('pend');setTimeout(function(){if(!n&&!holds)clearPend()},1500)},true);
+  if(f)window.fetch=function(u){
+    var url=String(u&&u.url||u||'');
+    if(url.indexOf(host)<0)return f.apply(this,arguments);
+    n++;begin();
+    return f.apply(this,arguments).then(function(r){n=Math.max(0,n-1);if(!r.ok&&r.status!==406)bad=true;finish();return r},function(e){n=Math.max(0,n-1);bad=true;finish();throw e});
+  };
+  return {
+    /* untuk pekerjaan panjang yang bukan permintaan tunggal (misalnya cadangan Excel) */
+    hold:function(text){userAt=Date.now();label=text||label;user=true;holds++;begin();show();
+      return function(failed){holds=Math.max(0,holds-1);if(failed)bad=true;finish()}}
+  };
 })();
 var LOGIN_FAILS=0,LOGIN_LOCK=0;
 var sb=null;
@@ -1413,9 +1477,10 @@ document.addEventListener('click',async function(e){
   else if(a==='peek'){var pi=document.getElementById('a-pass');if(pi){var sh=pi.type==='password';pi.type=sh?'text':'password';el.textContent=sh?'Sembunyikan':'Lihat';el.setAttribute('aria-label',sh?'Sembunyikan password':'Tampilkan password')}}
   else if(a==='backup'){
     var bb=el;if(bb.disabled)return;bb.disabled=true;var old=bb.textContent;bb.textContent='Menyiapkan...';
+    var rel=JMBusy.hold('Menyiapkan cadangan Excel…'),fail=false;
     try{var nm=await exportCadangan();toast('Cadangan diunduh: '+nm)}
-    catch(err){toast(err&&err.message==='lib'?'Belum bisa menyiapkan berkas Excel. Periksa koneksi lalu coba lagi.':'Cadangan belum berhasil. Coba lagi.')}
-    finally{bb.disabled=false;bb.textContent=old}
+    catch(err){fail=true;toast(err&&err.message==='lib'?'Belum bisa menyiapkan berkas Excel. Periksa koneksi lalu coba lagi.':'Cadangan belum berhasil. Coba lagi.')}
+    finally{bb.disabled=false;bb.textContent=old;rel(fail)}
   }
   else if(a==='shopname'){
     var sn=((document.getElementById('shop-name')||{}).value||'').trim();if(!sn){toast('Isi nama toko');return}
