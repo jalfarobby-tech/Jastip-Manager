@@ -634,6 +634,19 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.busy-sp{animation-duration:1.8s}}
 .sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
 @media(max-width:420px){.sheet-ft .btn svg{display:none}}
+<div id="app"></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+
+.ongpick{display:flex;flex-direction:column;gap:8px}
+.ongpick .label{margin:0}
+.ongrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 6px 6px 16px;border:1px solid var(--rule);border-radius:16px;background:var(--card,transparent);font-weight:700}
+.ongrow input{width:9.5em;max-width:55%;text-align:right;border:0;background:transparent;font:inherit;font-weight:700;padding:10px 10px;border-radius:12px;color:var(--ink)}
+.ongrow input::placeholder{color:var(--muted);font-weight:500}
+.ongrow:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.ongrow input:focus{outline:0}
+.ongpick{gap:12px}
+.ordsum span small{display:block;font-size:.78rem;font-weight:600;opacity:.8}
 </style>
 </head>
 <body>
@@ -1854,6 +1867,12 @@ function orderRow(){
   var n=++ORN;
   return '<div class="orow"><div class="orow-top"><input name="kode" class="upper" data-pick="code" inputmode="text" autocapitalize="characters" autocomplete="off" data-live="ord" placeholder="Nomor barang, mis. A12" aria-label="Nomor barang">'+stepper('oq-'+n,1,1)+'<button type="button" class="icon-btn rm" data-act="ord-del" aria-label="Hapus baris">'+ico('x')+'</button></div><div class="orow-pv small muted" aria-live="polite"></div></div>';
 }
+function ongPick(pre){
+  var d=pre&&S.deliv.find(function(x){return x.cust===pre.id&&x.trip===S.cur}),on=!!(d&&d.ong>0);
+  return '<div class="ongpick"><div class="label">Ongkir</div><div class="utabs" role="group" aria-label="Ongkir">'+
+    '<button type="button" data-act="ord-ong" data-m="0" aria-pressed="'+(!on)+'">Tanpa ongkir</button><button type="button" data-act="ord-ong" data-m="1" aria-pressed="'+on+'">Pakai ongkir</button></div>'+
+    '<label class="field" id="o-ong-wrap"'+(on?'':' hidden')+'><span>Berapa ongkirnya? (Rp)</span><input id="o-ong" name="ong" type="text" data-money="i" inputmode="numeric" autocomplete="off" placeholder="Contoh: 25.000" value="'+(on?esc(fmtIn(d.ong)):'')+'"></label></div>';
+}
 function modalOrder(C){
   var codeOpts=C.items.map(function(i){return '<option value="'+esc(i.kode)+'">'+esc(i.nama)+'</option>'}).join('');
   var custOpts=S.customers.map(function(c){return '<option value="'+esc(c.nama)+'">'}).join('');
@@ -1863,6 +1882,7 @@ function modalOrder(C){
     '<label class="field"><span>Nomor WhatsApp</span><input id="o-hp" name="hp" inputmode="tel" autocomplete="off" placeholder="08xxxxxxxxxx" value="'+esc(pre?pre.hp:'')+'"><small>Dipakai untuk mengirim tagihan. Tersimpan untuk pesanan berikutnya.</small></label>'+
     '<div class="label" style="margin-top:4px">Barang yang dipesan</div><div id="ord-rows">'+orderRow()+'</div><datalist id="codeList">'+codeOpts+'</datalist>'+
     '<button type="button" class="btn sm" data-act="ord-add" style="align-self:flex-start">'+ico('plus')+'Tambah barang lain</button>'+
+    (APP.noOngkir||APP.noDeliv?'':ongPick(pre))+
     '<div class="ordsum" id="ord-sum" aria-live="polite"><span>Total tagihan</span><b>Rp0</b></div></div>'+
     '<div class="sheet-ft"><button class="btn" type="submit" name="go" value="save">Simpan saja</button><button class="btn primary" type="submit" name="go" value="wa">'+ico('wa')+'Simpan & kirim tagihan</button></div></form>',true);
 }
@@ -1878,7 +1898,8 @@ function liveOrder(){
     if(it.status!=='habis')tot+=pr*q;
     pv.textContent=it.nama+' · '+rp(pr)+' × '+q+' = '+rp(pr*q)+(it.status==='habis'?' (habis)':'');
   });
-  var sm=document.getElementById('ord-sum');if(sm)sm.innerHTML='<span>Total tagihan</span><b>'+rp(tot)+'</b>';
+  var ow=document.getElementById('o-ong-wrap'),og=ow&&!ow.hidden?Math.max(0,Math.round(numIn(document.getElementById('o-ong').value)||0)):0;
+  var sm=document.getElementById('ord-sum');if(sm)sm.innerHTML='<span>Total tagihan'+(og?'<small>termasuk ongkir</small>':'')+'</span><b>'+rp(tot+og)+'</b>';
 }
 function liveOrdName(){
   var n=document.getElementById('o-nama'),h=document.getElementById('o-hp');if(!n||!h)return;
@@ -2065,13 +2086,11 @@ function modalCust(C){
     '<button class="btn primary block" data-act="pay-full" data-id="'+c.c.id+'">'+ico('check')+'Sudah dibayar, konfirmasi lunas</button></div>':'';
   return sheet(c.c.nama,'<div class="sheet-bd">'+payWait+
     '<div class="nota'+(lunas?' lunas':'')+'">'+(lunas?'<div class="stamp">LUNAS</div>':'')+'<div><div class="who">'+esc(c.c.nama)+'</div><div class="when">'+esc(t.nama)+'</div></div>'+
-    (rows||'<div class="ln"><span class="muted">Belum ada barang yang dihitung.</span></div>')+(c.ong>0?ln('','Ongkir','Ongkos kirim',rp(c.ong)+''):'')+
+    (rows||'<div class="ln"><span class="muted">Belum ada barang yang dihitung.</span></div>')+(c.ong>0?'<div class="ln item"><span class="q"></span><span class="nm">Ongkir</span><span class="pr">'+rp(c.ong)+'</span></div>':'')+
     '<div class="sum"><div class="ln"><span class="nm">Total tagihan</span><span class="dots"></span><span class="pr">'+rp(c.tagihan)+'</span></div>'+
     '<div class="ln"><span class="nm">Sudah dibayar</span><span class="dots"></span><span class="pr">'+rp(c.paid)+'</span></div>'+
     '<div class="ln"><span class="nm big">Sisa</span><span class="dots"></span><span class="pr big">'+rp(Math.max(0,c.sisa))+'</span></div></div></div>'+
-    (APP.noOngkir||c.stage==='none'?'':'<div class="sec"><div class="label">Ongkir</div><div class="utabs" role="group" aria-label="Ongkir">'+
-      '<button data-act="ong-mode" data-id="'+c.c.id+'" data-m="0" aria-pressed="'+(!ongOn)+'">Tanpa ongkir</button><button data-act="ong-mode" data-id="'+c.c.id+'" data-m="1" aria-pressed="'+ongOn+'">Pakai ongkir</button></div>'+
-      (ongOn?'<label class="field"><span>Berapa ongkirnya? (Rp)</span><input id="ong-'+c.c.id+'" data-chg="ongkir" data-id="'+c.c.id+'" type="text" data-money="i" inputmode="numeric" autocomplete="off" placeholder="Contoh: 25.000" value="'+(c.ong>0?esc(fmtIn(c.ong)):'')+'"><small>Langsung masuk ke total tagihan dan pesan WhatsApp.</small></label>':'')+'</div>')+
+    (APP.noOngkir||c.stage==='none'?'':'<label class="ongrow"><span>Ongkir</span><input id="ong-'+c.c.id+'" data-chg="ongkir" data-id="'+c.c.id+'" type="text" data-money="i" inputmode="numeric" autocomplete="off" placeholder="Tanpa ongkir" value="'+(c.ong>0?esc(fmtIn(c.ong)):'')+'" aria-label="Ongkir (Rp)"></label>')+
     (c.sisa>0?'<div class="sec"><div class="label">Catat pembayaran</div>'+(c.hold.length?'':'<button class="btn primary block" data-act="pay-full" data-id="'+c.c.id+'">'+ico('check')+'Tandai lunas ('+rp(c.sisa)+')</button>')+
       '<div class="field"><span>Atau bayar sebagian (Rp)</span><div class="stepper"><input id="pay-'+c.c.id+'" type="text" data-money="i" inputmode="numeric" autocomplete="off" placeholder="Contoh: 100.000"><button type="button" style="width:auto;padding:0 20px;font-weight:700" data-act="pay" data-id="'+c.c.id+'">Simpan</button></div></div></div>':'')+
     (ps.length?'<div class="sec"><div class="label">Riwayat pembayaran</div><div class="list">'+ps.map(function(p){return '<div class="row" style="min-height:52px;padding:6px 0"><div class="grow"><b class="num">'+rp(p.amt)+'</b><div class="sub">'+fmtT(p.t)+'</div></div><button class="btn sm text" data-act="pay-del" data-id="'+p.id+'">'+(armed('pay-'+p.id)?'Yakin hapus?':'Hapus')+'</button></div>'}).join('')+'</div></div>':'')+
@@ -2249,6 +2268,9 @@ document.addEventListener('click',function(e){
     case 'item-del':arm('del-'+id,function(){var it=S.items.find(function(x){return x.id===id});S.items=S.items.filter(function(x){return x.id!==id});save();UI.modal=null;render();toast('Barang '+it.kode+' dihapus. Pesanan dengan kode ini tetap tersimpan.')});break;
     case 'line-new-for':UI.modal={type:'line-new',cust:id};UI.focus='o-nama';render();break;
     case 'ord-add':var ob=document.getElementById('ord-rows');if(ob){ob.insertAdjacentHTML('beforeend',orderRow());var ins=ob.querySelectorAll('[name=kode]');ins[ins.length-1].focus()}break;
+    case 'ord-ong':{var on1=el.dataset.m==='1',wr=document.getElementById('o-ong-wrap');
+      el.parentNode.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',String(b===el))});
+      if(wr){wr.hidden=!on1;var oi=document.getElementById('o-ong');if(on1&&oi)oi.focus();if(!on1&&oi)oi.value=''}liveOrder();break}
     case 'ord-del':var ro=el.closest('.orow');if(ro&&document.querySelectorAll('#ord-rows .orow').length>1){ro.remove();liveOrder()}break;
     case 'line-new':UI.modal={type:'line-new'};UI.focus='o-nama';render();break;
     case 'import-open':UI.modal={type:'import'};UI.preview=null;UI.focus='waText';render();break;
@@ -2329,7 +2351,7 @@ document.addEventListener('input',function(e){
 });
 document.addEventListener('input',function(e){
   var el=e.target;
-  if(el.closest&&el.closest('#ord-rows'))liveOrder();
+  if(el.closest&&(el.closest('#ord-rows')||el.id==='o-ong'))liveOrder();
   if(el.dataset&&el.dataset.live){livePrice();liveCode();liveTrip();liveBulk();liveOrder();liveOrdName()}
   if(el.dataset&&el.dataset.oainp==='mata'){var tx=document.getElementById('t-mata-txt');if(tx)tx.textContent=el.value.toUpperCase()||'mata uang';clearTimeout(UI.rt);UI.rt=setTimeout(function(){rateFill(true)},500)}
   if(!el.dataset)return;
@@ -2408,6 +2430,12 @@ document.addEventListener('submit',function(e){
     var cs=findCust(nama,true);if(hp&&cs.hp!==hp)cs.hp=hp;
     var now=Date.now();
     ls.forEach(function(l,k){S.lines.push({id:uid(),trip:t.id,cust:cs.id,kode:l.code,qty:l.qty,t:now+k,src:'manual',rel:false})});
+    if(!APP.noOngkir&&!APP.noDeliv&&document.getElementById('o-ong-wrap')){
+      var ow2=document.getElementById('o-ong-wrap'),ogv=ow2.hidden?0:Math.max(0,Math.round(numIn(fd.ong)||0));
+      var dg=S.deliv.find(function(x){return x.cust===cs.id&&x.trip===t.id});
+      if(dg){dg.ong=ogv;if(!ogv&&!dg.st&&!dg.resi)S.deliv=S.deliv.filter(function(x){return x!==dg})}
+      else if(ogv)S.deliv.push({id:uid(),trip:t.id,cust:cs.id,st:'',resi:'',ong:ogv});
+    }
     save();
     var C1=calc(t.id),cc1=C1.custs.find(function(x){return x.c.id===cs.id}),opened=false;
     if(wantWa&&cc1){var w=null;try{w=window.open('https://wa.me/'+phone(cs.hp)+'?text='+encodeURIComponent(waBill(cc1,C1.t)),'_blank');if(w)w.opener=null}catch(er){}opened=!!w}
