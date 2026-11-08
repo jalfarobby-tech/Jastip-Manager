@@ -117,7 +117,8 @@ input[type=search]{background:var(--sunken);border-color:transparent}
 .tripsel select option{color:#111;background:#fff}
 .tripsel b{font-family:var(--f-head);font-size:1.15rem}
 .syncdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 8px 0 auto;background:#7ee2a8;flex:none}
-.syncdot.saving{background:var(--hi);animation:sdp 1s ease-in-out infinite}
+.syncdot.ok{display:none}
+.syncdot.saving{background:var(--hi)}
 .syncdot.err{background:#ff8d85}
 @keyframes sdp{50%{opacity:.35}}
 .shell{max-width:1180px;margin:0 auto}
@@ -1694,7 +1695,7 @@ function viewHome(C){
   }
   var nCust=C.custs.filter(function(c){return c.tagihan>0||c.rows.length||c.wait.length||c.habis.length}).length;
   var net=T.estRev+T.ong-T.estCost-(+t.biayaLain||0);
-  var h='<div class="home2"><div class="col"><section class="lux"><div class="lux-top"><span class="lux-trip">'+esc(t.nama)+'</span>'+(owner?'<button class="lux-edit" data-act="trip-edit">Ubah trip</button>':'<span class="lux-live"><i></i>Tersambung</span>')+'</div>'+
+  var h='<div class="home2"><div class="col"><section class="lux"><div class="lux-top"><span class="lux-trip">'+esc(t.nama)+'</span>'+(owner?'<button class="lux-edit" data-act="trip-edit">Ubah trip</button>':'')+'</div>'+
     '<h1 class="lux-h">'+esc(sentence)+'</h1>'+(T.codes>0?'<div class="lux-bar" role="img" aria-label="'+doneN+' dari '+T.codes+' barang sudah dibeli"><i style="width:'+pct+'%"></i></div>':'')+
     '<dl class="lux-st"><div><dd>'+nCust+'</dd><dt>pelanggan</dt></div><div><dd>'+doneN+'<small>/'+T.codes+'</small></dd><dt>barang dibeli</dt></div><div><dd>'+piut.length+'</dd><dt>belum lunas</dt></div></dl>'+
     (meta?'<p class="lux-meta">'+meta+'</p>':'')+'</section>'+
