@@ -440,12 +440,12 @@ main .list:empty{display:none}
 .lux-trip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lux-edit{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;min-height:36px}
 .lux-live{display:flex;align-items:center;gap:7px;font-size:.82rem}.lux-live i{width:8px;height:8px;border-radius:50%;background:#5be394}
-.lux-h{font-family:var(--serif);font-weight:400;font-size:clamp(1.9rem,8.4vw,2.5rem);line-height:1.06;margin:26px 0 20px;color:#fff;max-width:14em}
+.lux-h{font-family:var(--serif);font-weight:400;font-size:clamp(1.7rem,7.4vw,2.3rem);line-height:1.08;margin:18px 0 16px;color:#fff;max-width:14em}
 .lux-bar{height:6px;border-radius:9px;background:rgba(255,255,255,.16);overflow:hidden}
 .lux-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#f7d155,var(--gold))}
 .lux-st{display:grid;grid-template-columns:repeat(3,1fr);margin:20px 0 0;border-top:1px solid rgba(255,255,255,.14)}
 .lux-st>div{padding:14px 0 0}.lux-st>div+div{padding-left:14px;border-left:1px solid rgba(255,255,255,.14)}
-.lux-st dd{margin:0;font-family:var(--serif);font-size:2.1rem;line-height:1;font-variant-numeric:lining-nums}
+.lux-st dd{margin:0;font-family:var(--serif);font-size:1.9rem;line-height:1;font-variant-numeric:lining-nums}
 .lux-st dd small{font-size:1.1rem;opacity:.6}
 .lux-st dt{font-size:.78rem;opacity:.68;margin-top:4px;font-weight:600}
 .lux-meta{margin:14px 0 0;font-size:.82rem;opacity:.62}
@@ -505,7 +505,7 @@ main .list:empty{display:none}
 .tripsel select option{color:#111;background:#fff}
 .tripsel{margin-right:6px}
 .icon-btn.spin svg{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-.deskout{display:none}
+nav.tabs .deskout{display:none}
 @media(min-width:900px){nav.tabs .in .deskout{display:flex;margin-top:18px;border-top:1px solid var(--rule);border-radius:0 0 14px 14px;color:var(--red)}nav.tabs .deskout svg{background:none!important}}
 .top .icon-btn{color:var(--ink)}
 .top .icon-btn{width:42px;height:42px}.top .icon-btn svg{width:22px;height:22px}
@@ -623,24 +623,15 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .pick-more{padding:12px 14px;color:var(--muted);font-size:.85rem}
 .orow .pick{margin-top:0}
 .pick[data-k=cust] b{font:700 .95rem var(--f-body)}
-.busy-c{display:none}
-html.net::before{content:"";position:fixed;left:0;top:0;height:2px;width:100%;z-index:9999;background:linear-gradient(90deg,transparent,var(--accent,#2740d8),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:netbar 1.1s ease-in-out infinite;opacity:.7}
-@keyframes netbar{from{background-position:-40% 0}to{background-position:140% 0}}
-.busy{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(11,16,48,.34);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:busyin .18s ease-out both}
+.busy{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:9998;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
 .busy[hidden]{display:none!important}
-.busy.lock-off{pointer-events:none;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
-.busy .busy-c{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:210px;max-width:min(320px,86vw);padding:26px 28px 22px;border-radius:22px;background:var(--surface,#fff);color:var(--ink,#111);box-shadow:0 24px 60px -18px rgba(0,0,0,.55);text-align:center;pointer-events:auto}
-.busy b{font-size:1.02rem;font-weight:700;line-height:1.3}
-.busy small{display:block;font-size:.84rem;line-height:1.4;color:var(--muted,#667);min-height:0}
-.busy small:empty{display:none}
-.busy-sp{width:38px;height:38px;border-radius:50%;border:4px solid color-mix(in srgb,var(--accent,#2740d8) 22%,transparent);border-top-color:var(--accent,#2740d8);animation:spin .8s linear infinite;margin-bottom:6px}
-.busy.ok .busy-sp{animation:none;border-color:var(--accent,#2740d8);background:var(--accent,#2740d8) center/20px 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");transform:scale(1);animation:busyok .28s cubic-bezier(.2,1.4,.4,1) both}
-@keyframes busyin{from{opacity:0}to{opacity:1}}
-@keyframes busyok{from{transform:scale(.6)}to{transform:scale(1)}}
+.busy .busy-c{display:flex;align-items:center;gap:10px;padding:11px 18px;border-radius:99px;background:var(--ink,#111);color:var(--bg,#fff);font-size:.95rem;font-weight:600;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+.busy small{display:none}
+.busy-sp{width:16px;height:16px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite;flex:none}
+@media(min-width:900px){.busy{bottom:28px}}
 .btn.pend{pointer-events:none;opacity:.75;position:relative}
-.btn.pend::after{content:"";display:inline-block;width:14px;height:14px;margin-left:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){html.net::before{animation:none;background:var(--accent,#2740d8);opacity:.6}.btn.pend::after,.busy-sp{animation-duration:1.8s}.busy{animation:none}}
+@media(prefers-reduced-motion:reduce){.busy-sp{animation-duration:1.8s}}
 .sheet-ft{flex-wrap:nowrap}.sheet-ft .btn{flex:1 1 0;padding-inline:10px;line-height:1.2}.sheet-ft .btn.primary{flex:1.7 1 0}
 @media(max-width:420px){.sheet-ft .btn svg{display:none}}
 </style>
@@ -941,32 +932,24 @@ var JMBusy=(function(){
   function setTxt(t,s){var c=el();c.querySelector('b').textContent=t;c.querySelector('small').textContent=s||''}
   function show(){
     var c=el();if(!c.hidden)return;
-    c.classList.remove('ok','lock-off');setTxt(label,'');c.hidden=false;shownAt=Date.now();
-    clearTimeout(tSlow);tSlow=setTimeout(function(){if(!c.hidden&&!c.classList.contains('ok'))setTxt(label,'Masih berjalan. Mohon jangan tutup halaman ini.')},2500);
-    clearTimeout(tMax);tMax=setTimeout(function(){if(!c.hidden){c.classList.add('lock-off');setTxt('Koneksi sedang lambat','Kalau tidak selesai, tutup lalu coba lagi.')}},25000);
+    setTxt(label,'');c.hidden=false;shownAt=Date.now();
+    clearTimeout(tMax);tMax=setTimeout(function(){if(!c.hidden)setTxt('Koneksi lambat, mohon tunggu…','')},12000);
   }
-  function hideNow(){clearTimeout(tSlow);clearTimeout(tMax);if(card){card.hidden=true;card.classList.remove('ok','lock-off')}}
+  function hideNow(){clearTimeout(tMax);if(card)card.hidden=true}
   function finish(){
     if(n>0||holds>0)return;
     clearTimeout(tOn);clearTimeout(tBar);H.classList.remove('net');
     if(!card||card.hidden){clearPend();return}
-    var wait=Math.max(0,500-(Date.now()-shownAt));
+    var wait=Math.max(0,700-(Date.now()-shownAt));
     clearTimeout(tHide);
-    tHide=setTimeout(function(){
-      if(n>0||holds>0)return;
-      if(bad){hideNow();clearPend();return}
-      card.classList.add('ok');setTxt('Selesai','');
-      tHide=setTimeout(function(){if(n>0||holds>0)return;hideNow();clearPend()},650);
-    },wait+350);
+    tHide=setTimeout(function(){if(n>0||holds>0)return;hideNow();clearPend()},wait);
   }
   function clearPend(){[].forEach.call(document.querySelectorAll('.btn.pend'),function(b){b.classList.remove('pend')})}
   function begin(){
     clearTimeout(tHide);
-    if(card&&card.classList.contains('ok')){card.classList.remove('ok');setTxt(label,'')}
     var fresh=!card||card.hidden;
-    if(n+holds===1&&fresh){user=Date.now()-userAt<4000;bad=false}
-    if(user){if(fresh){clearTimeout(tOn);tOn=setTimeout(show,400)}}
-    else{clearTimeout(tBar);tBar=setTimeout(function(){H.classList.add('net')},300)}
+    if(n+holds===1&&fresh){user=Date.now()-userAt<6000;bad=false}
+    if(user&&fresh){clearTimeout(tOn);tOn=setTimeout(show,150)}
   }
   function lbl(t){
     var q=t.closest?t:t.parentNode;if(!q||!q.closest)return 'Memproses…';
@@ -2063,8 +2046,8 @@ function modalCust(C){
     return '<div class="row" style="min-height:56px;padding:8px 0'+(l.batal?';opacity:.55':'')+'"><span class="code">'+esc(l.kode)+'</span><div class="grow"><div class="t">'+(it?esc(it.nama):'Kode belum terdaftar')+' <span class="num">×'+l.qty+'</span></div><div class="sub">'+fmtT(l.t)+(l.src==='wa'?', dari WA':'')+(l.batal?', dibatalkan':'')+'</div></div><button class="btn sm text" data-act="line-toggle" data-id="'+l.id+'">'+(l.batal?'Pulihkan':'Batalkan')+'</button></div>'}).join('')+'</div></div>':'';
   var ongOn=c.ong>0||UI.ongOn===c.c.id;
   var wa=phone(c.c.hp),lunas=c.tagihan>0&&c.sisa<=0,billMsg=c.hold.length?waBill(c,t):waMsg(c,t);
-  var payWait=c.hold.length?'<div class="paywait"><div class="pw-h"><b>Menunggu pembayaran</b><span class="num">'+rp(Math.max(0,c.sisa))+'</span></div><p>Barang ini masuk ke daftar belanja setelah pelanggan membayar.</p>'+
-    (wa?'<a class="btn block" target="_blank" rel="noopener" href="https://wa.me/'+wa+'?text='+encodeURIComponent(waBill(c,t))+'">'+ico('wa')+'Kirim tagihan lewat WhatsApp</a>':'<p class="small">Isi nomor WhatsApp di bagian bawah untuk mengirim tagihan.</p>')+
+  var payWait=c.hold.length?'<div class="paywait"><div class="pw-h"><b>Menunggu pembayaran</b><span class="num">'+rp(Math.max(0,c.sisa))+'</span></div><p>Kirim tagihan di bawah. Setelah pelanggan membayar, tekan tombol ini supaya barangnya masuk daftar belanja.</p>'+
+    (wa?'':'<p class="small">Isi nomor WhatsApp di bagian bawah untuk mengirim tagihan.</p>')+
     '<button class="btn primary block" data-act="pay-full" data-id="'+c.c.id+'">'+ico('check')+'Sudah dibayar, konfirmasi lunas</button></div>':'';
   return sheet(c.c.nama,'<div class="sheet-bd">'+payWait+
     '<div class="nota'+(lunas?' lunas':'')+'">'+(lunas?'<div class="stamp">LUNAS</div>':'')+'<div><div class="who">'+esc(c.c.nama)+'</div><div class="when">'+esc(t.nama)+'</div></div>'+
