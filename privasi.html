@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f3eee5">
+<title>Kebijakan Privasi · Jastip Manager</title>
+<meta name="description" content="Data apa saja yang disimpan Jastip Manager, untuk apa, siapa yang bisa melihatnya, dan cara meminta data dihapus.">
+<link rel="canonical" href="https://jalfarobby-tech.github.io/Jastip-Manager/privasi.html">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#f3eee5;--ink:#16130f;--muted:#6b645a;--rule:#d9d1c2;--blue:#2740d8}
+@media(prefers-color-scheme:dark){:root{--bg:#12100d;--ink:#f3eee5;--muted:#a79f92;--rule:#35302a;--blue:#93a5ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.7 system-ui,-apple-system,'Segoe UI',sans-serif;padding:0 20px env(safe-area-inset-bottom,0)}
+main{max-width:720px;margin:0 auto;padding:36px 0 60px}
+h1{font:400 2.4rem/1.1 Georgia,serif;margin:0 0 6px}
+h2{font:700 1.1rem/1.3 system-ui,sans-serif;margin:30px 0 6px}
+p,li{margin:0 0 10px}ul{padding-left:20px;margin:0 0 10px}
+.m{color:var(--muted);font-size:.9rem}a{color:var(--blue)}
+.back{display:inline-block;margin-bottom:22px;text-decoration:none;font-weight:600}
+hr{border:0;border-top:1px solid var(--rule);margin:30px 0}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">← Kembali</a>
+<h1>Kebijakan Privasi</h1>
+<p class="m">Terakhir diperbarui: 8 November 2026</p>
+<p>Jastip Manager adalah aplikasi untuk mencatat pesanan jastip. Halaman ini menjelaskan dengan bahasa sederhana data apa yang disimpan dan bagaimana data itu dijaga.</p>
+
+<h2>Data yang disimpan</h2>
+<ul>
+<li><b>Akun:</b> email dan nama pengguna (pemilik toko dan karyawan). Password disimpan dalam bentuk terenkripsi oleh layanan login, tidak bisa dibaca siapa pun, termasuk kami.</li>
+<li><b>Data toko yang kamu masukkan:</b> nama pelanggan, nomor WhatsApp pelanggan, pesanan, harga, pembayaran, ongkir, nomor resi, dan catatan.</li>
+<li><b>Formulir &ldquo;Coba&rdquo; di halaman depan:</b> bila kamu mengisinya, pesan akan dikirim lewat WhatsApp ke admin. Isinya hanya yang kamu ketik sendiri.</li>
+<li><b>Telegram (opsional):</b> jika pemilik mengaktifkan ringkasan lewat Telegram, aplikasi mengirim ringkasan angka toko ke chat yang ia tentukan.</li>
+</ul>
+
+<h2>Untuk apa data dipakai</h2>
+<p>Hanya untuk menjalankan aplikasi: menghitung tagihan, daftar belanja, dan untung. Data tidak dijual dan tidak dipakai untuk iklan.</p>
+
+<h2>Di mana data disimpan</h2>
+<p>Data disimpan di layanan basis data cloud (Supabase). Setiap toko hanya bisa dibuka oleh anggotanya sendiri; toko lain tidak bisa melihatnya. Pemilik dapat melihat semua data tokonya dan mengatur karyawan. Peran lain hanya melihat bagian yang diperlukan untuk tugasnya.</p>
+
+<h2>Pihak ketiga</h2>
+<ul>
+<li>Supabase: penyimpanan data dan login.</li>
+<li>GitHub Pages: tempat halaman ini dan aplikasi disajikan.</li>
+<li>Google Fonts dan cdnjs: memuat huruf dan pustaka ekspor Excel. Peramban kamu terhubung ke server mereka saat memuatnya.</li>
+</ul>
+
+<h2>Menghapus data</h2>
+<p>Pemilik bisa menghapus trip, pelanggan, atau pesanan langsung di aplikasi, dan mengunduh cadangan Excel kapan saja. Untuk menghapus akun atau seluruh data toko, hubungi admin lewat WhatsApp (tombol ada di halaman depan). Kami akan memprosesnya secepatnya.</p>
+
+<h2>Data pelanggan toko</h2>
+<p>Nama dan nomor pelanggan yang dimasukkan ke aplikasi adalah tanggung jawab pemilik toko. Gunakan seperlunya untuk transaksi jastip, dan hapus bila pelanggan memintanya.</p>
+
+<h2>Keamanan</h2>
+<p>Koneksi memakai HTTPS. Akses data dibatasi per toko dan per peran di sisi server. Tidak ada sistem yang 100% bebas risiko, jadi pakai password yang kuat dan jangan dibagikan.</p>
+
+<h2>Perubahan</h2>
+<p>Jika kebijakan ini berubah, tanggal di atas akan diperbarui.</p>
+<hr>
+<p class="m">Halaman ini penjelasan praktis, bukan nasihat hukum.</p>
+</main>
+</body>
+</html>
