@@ -647,6 +647,22 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .ongrow input:focus{outline:0}
 .ongpick{gap:12px}
 .ordsum span small{display:block;font-size:.78rem;font-weight:600;opacity:.8}
+
+.srow .nm{font-weight:700;font-size:1rem;line-height:1.25;overflow-wrap:anywhere}
+.srow .who{margin-top:3px;font-size:.84rem;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.srow .mt{margin-top:5px}
+.srow .st{white-space:normal;align-items:flex-start;line-height:1.3;font-size:.84rem}
+.srow .st::before{margin-top:3px}
+.srow .main{align-items:flex-start;padding:14px 4px 14px 2px}
+.srow .main .code{margin-top:1px}
+.srow .qty{padding-top:2px;min-width:2.6em}
+.srow .chkcell{align-self:center}
+.srow.topup{box-shadow:none;background-color:color-mix(in srgb,var(--amber) 9%,transparent)}
+.groups .sec>.label span:first-child::first-letter{text-transform:uppercase}
+.groups .sec>.label{align-items:baseline;margin-bottom:6px}
+.tchips{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);padding-right:28px}
+.tchips button{max-width:70vw}
+.tchips button>:first-child:not(.tn){overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -1793,9 +1809,9 @@ function viewBelanja(C){
 function shopRow(C,i){
   var p=C.per[i.id],t=C.t,tu=topUp(C,i),qty=tu?p.wait:(i.status==='dibeli'?i.boughtQty:p.alloc);
   var who=S.role==='pembeli'?'':p.lines.map(function(l){var c=S.customers.find(function(x){return x.id===l.cust});return esc(c?c.nama:'?')+' ×'+l.qty}).join(' · ');
-  var meta=tu?st('warn','Pesanan bertambah: beli lagi '+p.wait+' pcs (sudah dibeli '+i.boughtQty+')'):i.status==='dibeli'?st('ok','Dibeli · '+esc(t.mata)+' '+nf(i.aktual==null?i.harga:i.aktual)):i.status==='habis'?st('bad','Habis'):(p.wait>0?st('warn',p.wait+' pcs tidak kebagian'):'');
+  var meta=tu?st('warn','Beli lagi '+p.wait+' pcs · sudah '+i.boughtQty):i.status==='dibeli'?st('ok','Dibeli '+esc(t.mata)+' '+nf(i.aktual==null?i.harga:i.aktual)):i.status==='habis'?st('bad','Habis'):(p.wait>0?st('warn',p.wait+' pcs tidak kebagian'):'');
   var sold=i.status==='habis';
-  return '<div class="srow'+(tu?' topup':(i.status==='dibeli'?' done':''))+(UI.just===i.id?' flash':'')+'"><button class="main" data-act="shop-open" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div style="min-width:0"><div class="t" style="font-weight:600;overflow-wrap:anywhere">'+esc(i.nama)+'</div><div class="sub small muted" style="overflow-wrap:anywhere">'+who+'</div>'+(meta?'<div style="margin-top:2px">'+meta+'</div>':'')+'</div>'+
+  return '<div class="srow'+(tu?' topup':(i.status==='dibeli'?' done':''))+(UI.just===i.id?' flash':'')+'"><button class="main" data-act="shop-open" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div style="min-width:0"><div class="t nm">'+esc(i.nama)+'</div>'+(who?'<div class="who">'+who+'</div>':'')+(meta?'<div class="mt">'+meta+'</div>':'')+'</div>'+
     '<div class="qty">'+(sold?'':'<b>'+(tu?'+':'')+qty+'</b><span>pcs</span>')+'</div></button>'+
     '<div class="chkcell"><button class="chk'+(sold?' sold':'')+(tu?' part':'')+(UI.just===i.id&&i.status==='dibeli'?' pop':'')+'" data-act="toggle-buy" data-id="'+i.id+'" aria-pressed="'+(i.status==='dibeli'&&!tu)+'" aria-label="'+(tu?'Tandai kekurangan sudah dibeli':i.status==='belum'?'Tandai sudah dibeli':'Kembalikan ke belum dibeli')+' '+esc(i.nama)+'">'+(sold?ico('x'):tu?ico('plus'):ico('check'))+'</button></div></div>';
 }
