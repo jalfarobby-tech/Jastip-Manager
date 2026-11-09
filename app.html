@@ -693,6 +693,22 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 
 .phero .pacts .btn{flex:0 0 auto;min-height:40px;padding:0 16px;font-size:.9rem}
 .groups .sec>.label>span:first-child{font-family:var(--f-body);font-weight:700;font-size:1.05rem;letter-spacing:-.005em}
+
+/* v2: beranda owner */
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tri-c{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px;border:1px solid var(--rule);border-radius:18px;background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;min-height:84px}
+.tri-c b{font-size:1.6rem;line-height:1;font-weight:700}
+.tri-c span{font-size:.82rem;color:var(--muted);font-weight:600;line-height:1.2}
+.tri-c.bad b{color:var(--red)}.tri-c.ok b{color:var(--green)}
+.tri-c:active{transform:scale(.98)}
+details.more{margin-top:4px}
+details.more>summary,details.gain-more>summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;font-size:.9rem;color:var(--accent)}
+details.more>summary::-webkit-details-marker,details.gain-more>summary::-webkit-details-marker{display:none}
+details.gain-more[open]>summary{margin-bottom:6px}
+.gain-more .sh.sm{font-size:.95rem;margin:18px 0 4px}
+
+.sh,h2.sh{font-family:var(--f-body)!important;font-weight:700;font-size:1.05rem;letter-spacing:-.005em;margin:22px 0 10px}
+.lux-h{font-size:clamp(1.5rem,6.4vw,2rem);margin:14px 0 14px}
 </style>
 </head>
 <body>
@@ -1749,9 +1765,11 @@ function viewHome(C){
         (wa?'<a class="btn sm primary" target="_blank" rel="noopener" data-told="'+c.c.id+'" href="https://wa.me/'+wa+'?text='+encodeURIComponent(waReady(c,t))+'">'+ico('wa')+'Kabari</a>':'<button class="btn sm" data-act="cust-open" data-id="'+c.c.id+'">Isi nomor WA</button>')+'</div>'}).join('')+'</div></div>';
     var cnt={},tot=0;C.custs.forEach(function(c){if(c.stage!=='none'){cnt[c.stage]=(cnt[c.stage]||0)+1;tot++}});
     var lunasN=C.custs.filter(function(c){return c.stage!=='none'&&c.tagihan>0&&c.sisa<=0}).length;
-    pipeHtml='<div class="card"><h2 class="sh">Status pelanggan</h2><div class="pipe">'+STAGE.map(function(s){var n=cnt[s[0]]||0;
-      return '<button class="pr-row" data-act="stage" data-f="'+s[0]+'"><span class="pl">'+s[1]+'</span><span class="pt"><i class="s-'+s[2]+'" style="width:'+(tot?Math.max(n?6:0,Math.round(n/tot*100)):0)+'%"></i></span><b class="num">'+n+'</b></button>'}).join('')+
-      '</div><div class="okpill" style="margin-top:12px">'+dic('check')+'Lunas '+lunasN+' dari '+tot+' pelanggan</div></div>';
+    var nB=cnt.bayar||0,nS=cnt.sent||0,nM=Math.max(0,tot-nB-nS);
+    pipeHtml='<section class="sec"><h2 class="sh">Pelanggan</h2><div class="tri">'+
+      '<button class="tri-c bad" data-act="stage" data-f="bayar"><b class="num">'+nB+'</b><span>Belum bayar</span></button>'+
+      '<button class="tri-c" data-act="tab" data-tab="kirim"><b class="num">'+nM+'</b><span>Siap diproses</span></button>'+
+      '<button class="tri-c ok" data-act="tab" data-tab="kirim"><b class="num">'+nS+'</b><span>Sudah terkirim</span></button></div></section>';
   }
   var nCust=C.custs.filter(function(c){return c.tagihan>0||c.rows.length||c.wait.length||c.habis.length}).length;
   var net=T.estRev+T.ong-T.estCost-(+t.biayaLain||0);
@@ -1760,16 +1778,16 @@ function viewHome(C){
     '<dl class="lux-st"><div><dd>'+nCust+'</dd><dt>pelanggan</dt></div><div><dd>'+doneN+'<small>/'+T.codes+'</small></dd><dt>barang dibeli</dt></div><div><dd>'+piut.length+'</dd><dt>belum lunas</dt></div></dl>'+
     (meta?'<p class="lux-meta">'+meta+'</p>':'')+'</section>'+
     '<div class="quick"><button class="btn" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn" data-act="import-open">'+ico('wa')+'Tempel chat</button><button class="btn" data-act="item-new">'+ico('plus')+'Barang</button></div>'+siapHtml+
-    '<section class="sec"><h2 class="sh">Perlu dikerjakan</h2><div class="prio">'+(rows.length?rows.join(''):'<div class="okpill">'+dic('check')+'Tidak ada yang tertunda.</div>')+'</div></section></div>';
-  h+='<div class="col">'+(owner?'<section class="gain"><div class="gain-l">Perkiraan untung bersih</div><div class="gain-v">'+rp(net)+'</div><div class="gain-s">Margin '+(T.estRev>0?Math.round(net/T.estRev*100):0)+'% dari omzet</div>'+'<button class="linkbtn" data-act="trip-edit" style="margin-top:8px">Fee jastip '+nf(t.feePct||0)+'%'+(+t.feeFlat?' + Rp'+nf(t.feeFlat)+'/barang':'')+' · Ubah</button>'+
-      '<div class="fin2"><div><span>Omzet</span><span>'+rp(T.estRev)+'</span></div>'+(T.ong>0?'<div><span>Ongkir dari pelanggan</span><span>+ '+rp(T.ong)+'</span></div>':'')+'<div><span>Modal barang</span><span>− '+rp(T.estCost)+'</span></div>'+(+t.biayaLain?'<div><span>Biaya lain</span><span>− '+rp(t.biayaLain)+'</span></div>':'')+'</div></section>':'')+
+    '<section class="sec"><h2 class="sh">Perlu dikerjakan</h2><div class="prio">'+(rows.length?rows.slice(0,4).join('')+(rows.length>4?'<details class="more"><summary>Lihat '+(rows.length-4)+' lainnya</summary>'+rows.slice(4).join('')+'</details>':''):'<div class="okpill">'+dic('check')+'Tidak ada yang tertunda.</div>')+'</div></section></div>';
+  h+='<div class="col">'+(owner?'<section class="gain"><div class="gain-l">Perkiraan untung bersih</div><div class="gain-v">'+rp(net)+'</div><div class="gain-s">Margin '+(T.estRev>0?Math.round(net/T.estRev*100):0)+'% dari omzet</div>'+'<details class="gain-more"><summary>Lihat rincian</summary>'+'<button class="linkbtn" data-act="trip-edit" style="margin-top:8px">Fee jastip '+nf(t.feePct||0)+'%'+(+t.feeFlat?' + Rp'+nf(t.feeFlat)+'/barang':'')+' · Ubah</button>'+
+      '<div class="fin2"><div><span>Omzet</span><span>'+rp(T.estRev)+'</span></div>'+(T.ong>0?'<div><span>Ongkir dari pelanggan</span><span>+ '+rp(T.ong)+'</span></div>':'')+'<div><span>Modal barang</span><span>− '+rp(T.estCost)+'</span></div>'+(+t.biayaLain?'<div><span>Biaya lain</span><span>− '+rp(t.biayaLain)+'</span></div>':'')+'</div>@@LIST@@</details></section>':'')+
     (pipeHtml?pipeHtml:'');
   if(owner){
     var list=C.items.filter(function(i){return C.per[i.id].ordered>0}).map(function(i){var p=C.per[i.id];
       return '<div class="row"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">Terjual '+p.alloc+' pcs, omzet '+rp(p.revenue)+'</div></div><div class="end">'+(i.status==='dibeli'?'<b>'+rp(p.profit)+'</b><span class="small muted">untung</span>':'<span class="small muted">belum dibeli</span>')+'</div></div>'}).join('');
-    h+='<section class="card"><h2 class="sh">Untung per barang</h2><div class="list">'+(list||'<div class="empty">Belum ada pesanan.</div>')+'</div><p class="small muted" style="margin:10px 0 0">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p></section>';
+    h=h.replace('@@LIST@@','<h3 class="sh sm">Untung per barang</h3><div class="list">'+(list||'<div class="empty">Belum ada pesanan.</div>')+'</div><p class="small muted" style="margin:10px 0 0">Dihitung dari semua pesanan aktif. Untung per barang baru muncul setelah barangnya dibeli.</p>');
   }
-  h+='</div></div>';
+  h=h.replace('@@LIST@@','');h+='</div></div>';
   return h;
 }
 
