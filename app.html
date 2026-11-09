@@ -663,6 +663,14 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .tchips{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);padding-right:28px}
 .tchips button{max-width:70vw}
 .tchips button>:first-child:not(.tn){overflow:hidden;text-overflow:ellipsis}
+
+.row.item .end{max-width:40%;gap:3px}
+.row.item .end b{font-size:.98rem}
+.bs{font-size:.78rem;font-weight:700;color:var(--muted);line-height:1.2}
+.bs.ok{color:var(--green)}.bs.bad{color:var(--red)}.bs.wait{color:var(--amber)}
+.row.item .t{font-weight:700;line-height:1.25}
+@media(max-width:899px){.pacts .btn.dup{display:none}.phero .pacts{margin-top:16px}.pacts .btn{min-height:44px}.main-pad-fab{padding-bottom:96px}}
+.page{padding-bottom:88px}
 </style>
 </head>
 <body>
@@ -1741,7 +1749,7 @@ function viewBarang(C){
   var tn=Object.keys(toko).length;
   return '<div class="page">'+phero(C.t.nama,C.items.length?'<span class="num">'+C.items.length+'</span> barang dari '+tn+' toko.':'Belum ada barang di trip ini.',null,
       [[C.items.length,'barang'],[ord,'sudah dipesan'],[habis,'habis']],
-      '<button class="btn primary" data-act="item-new">'+ico('plus')+'Tambah barang</button><button class="btn" data-act="item-bulk">Tempel banyak sekaligus</button>')+
+      '<button class="btn primary dup" data-act="item-new">'+ico('plus')+'Tambah barang</button><button class="btn" data-act="item-bulk">Tempel banyak sekaligus</button>')+
     '<input id="q-items" class="search" data-inp="q" type="search" placeholder="Cari nomor, nama, atau toko" aria-label="Cari barang" value="'+esc(UI.q)+'">'+
     '<div id="list">'+itemsList(C)+'</div></div>';
 }
@@ -1754,7 +1762,7 @@ function itemsList(C){
   var g={};arr.forEach(function(i){var k=tokoOf(i)||'Tanpa toko';(g[k]=g[k]||[]).push(i)});
   function brow(i){var p=C.per[i.id];
     return '<button class="row item" data-act="item-edit" data-id="'+i.id+'"><span class="code">'+esc(i.kode)+'</span><div class="grow"><div class="t">'+esc(i.nama)+'</div><div class="sub">'+esc(t.mata)+' '+nf(i.harga)+(i.stok!==''&&i.stok!=null?' · stok '+i.stok:'')+'</div></div>'+
-      '<div class="end"><b>'+rp(p.price)+'</b><span class="small '+(i.status==='habis'?'':'muted')+'" style="'+(i.status==='habis'?'color:var(--bad)':'')+'">'+(i.status==='habis'?'habis':(i.status==='dibeli'?'dibeli':p.ordered+' dipesan')+(hq[i.id]?' · '+hq[i.id]+' belum bayar':''))+(i.fix>0?'<span class="small muted">harga sendiri</span>':'')+'</span></div></button>'}
+      '<div class="end"><b>'+rp(p.price)+'</b>'+(i.status==='habis'?'<span class="bs bad">Habis</span>':i.status==='dibeli'?'<span class="bs ok">Dibeli</span>':'<span class="bs">'+(p.ordered?p.ordered+' dipesan':'Belum ada pesanan')+'</span>')+(hq[i.id]?'<span class="bs wait">'+hq[i.id]+' belum bayar</span>':'')+(i.fix>0?'<span class="bs">harga sendiri</span>':'')+'</div></button>'}
   return '<div class="groups">'+Object.keys(g).sort(natCmp).map(function(k){
     var byA={};g[k].forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
     var as=Object.keys(byA).sort(areaCmp),multi=as.length>1||as[0]!=='';
@@ -1835,7 +1843,7 @@ function viewTagihan(C){
   var nC=C.custs.filter(function(c){return c.tagihan>0||c.rows.length||c.hold.length}).length,nW=C.custs.filter(function(c){return c.hold.length}).length,nL=C.custs.filter(function(c){return c.tagihan>0&&c.sisa<=0}).length;
   var head=!tot.t?'Belum ada tagihan di trip ini.':sisa>0?'<span class="num">'+rp(sisa)+'</span> belum dibayar.':'Semua tagihan sudah lunas.';
   var h='<div class="page">'+phero(C.t.nama,head,tot.t?pct:null,[[nC,'pelanggan'],[nW,'menunggu bayar'],[nL,'lunas']],
-    '<button class="btn primary" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn" data-act="import-open">'+ico('wa')+'Tempel chat WA</button>');
+    '<button class="btn primary dup" data-act="line-new">'+ico('plus')+'Pesanan baru</button><button class="btn" data-act="import-open">'+ico('wa')+'Tempel chat WA</button>');
   if(S.role==='owner'&&!(APP.shop&&APP.shop.pay))h+='<div class="banner" style="margin-bottom:12px"><span>Nomor rekening belum diisi, jadi tagihan WhatsApp belum memuat cara bayar.</span><button class="btn sm" data-act="settings">Isi sekarang</button></div>';
   if(!C.custs.length)return h+'<div class="empty">Belum ada pelanggan di trip ini. Tekan Pesanan baru atau tempel chat WhatsApp.</div></div>';
   h+='<div class="toolbar"><input id="q-lines" class="search" data-inp="qo" type="search" placeholder="Cari nama pelanggan" aria-label="Cari pelanggan" value="'+esc(UI.qo)+'">'+
