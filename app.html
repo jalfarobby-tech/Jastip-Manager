@@ -671,6 +671,28 @@ details.more summary,.chipf{overflow-wrap:anywhere}
 .row.item .t{font-weight:700;line-height:1.25}
 @media(max-width:899px){.pacts .btn.dup{display:none}.phero .pacts{margin-top:16px}.pacts .btn{min-height:44px}.main-pad-fab{padding-bottom:96px}}
 .page{padding-bottom:88px}
+
+/* strip ringkas di tab selain Beranda */
+.phero{background:var(--surface);color:var(--ink);box-shadow:none;border:1px solid var(--rule);border-radius:20px;padding:14px 16px 14px}
+.phero::after{display:none}
+.phero .lux-top{opacity:1;font-size:.8rem;color:var(--muted);font-weight:600}
+.phero .lux-h,.phero .lux-h .num{font-family:var(--f-body);font-weight:700}
+.phero .lux-h{font-size:1.2rem;line-height:1.25;margin:4px 0 12px;color:var(--ink);letter-spacing:-.01em}
+.phero .lux-bar{height:6px;background:var(--sunken)}
+.phero .lux-st{display:flex;flex-wrap:wrap;gap:6px 20px;margin:12px 0 0;border:0}
+.phero .lux-st>div,.phero .lux-st>div+div{padding:0;border:0;display:flex;align-items:baseline;gap:6px}
+.phero .lux-st dd{font-size:1.05rem;font-family:var(--f-body)}
+.phero .lux-st dd small{font-size:.85rem}
+.phero .lux-st dt{margin:0;padding:0;font-size:.82rem;color:var(--muted);opacity:1}
+.phero .pacts{margin-top:14px;gap:8px}
+.phero .pacts .btn{color:var(--ink);background:var(--surface);border:1.5px solid var(--rule-strong);min-height:44px;flex:1 1 auto}
+.phero .pacts .btn:hover{background:var(--sunken)}
+.phero .pacts .btn .i{color:currentColor}
+.phero .pacts .btn.primary{background:var(--gold);border-color:var(--gold);color:#241b00}
+@media(min-width:900px){.phero .lux-h{font-size:1.5rem}.phero{padding:18px 22px}.phero .pacts .btn{flex:0 0 auto}}
+
+.phero .pacts .btn{flex:0 0 auto;min-height:40px;padding:0 16px;font-size:.9rem}
+.groups .sec>.label>span:first-child{font-family:var(--f-body);font-weight:700;font-size:1.05rem;letter-spacing:-.005em}
 </style>
 </head>
 <body>
@@ -947,6 +969,18 @@ function allowedTabsAll(){
 }
 var TAB_LABEL={home:'Beranda',barang:'Barang',belanja:'Belanja',tagihan:'Pelanggan',kirim:'Kirim'};
 
+
+/* layar tetap menyala saat daftar belanja dibuka */
+var WL={l:null};
+function wakeSync(){
+  try{
+    if(!('wakeLock' in navigator))return;
+    var want=UI.tab==='belanja'&&document.visibilityState==='visible'&&!!S.cur;
+    if(want&&!WL.l&&!WL.busy){WL.busy=1;navigator.wakeLock.request('screen').then(function(l){WL.busy=0;WL.l=l;l.addEventListener('release',function(){WL.l=null})}).catch(function(){WL.busy=0})}
+    else if(!want&&WL.l){WL.l.release();WL.l=null}
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',function(){wakeSync()});
 
 
 /* ================= ONLINE: Supabase, login, sinkron ================= */
@@ -1961,7 +1995,7 @@ function modalShop(C){
   var p=C.per[i.id],t=C.t,tu=topUp(C,i),qty=tu?p.ordered:(i.status==='dibeli'?i.boughtQty:p.alloc),price=i.aktual!=null?i.aktual:i.harga;
   var who=p.lines.map(function(l){var c=S.customers.find(function(x){return x.id===l.cust});return '<div class="row" style="min-height:48px;padding:8px 14px"><div class="grow">'+esc(c?c.nama:'?')+'</div><b class="num">×'+l.qty+'</b></div>'}).join('');
   return sheet(i.kode+' · '+i.nama,'<div class="sheet-bd">'+
-    '<div class="sec"><div class="label">Pemesan ('+p.ordered+' pcs)</div><div class="list">'+who+'</div></div>'+
+    (S.role==='pembeli'?'<div class="sec"><div class="label">Perlu dibeli</div><div class="list"><div class="row" style="min-height:48px;padding:8px 14px"><div class="grow">Total pesanan</div><b class="num">'+p.ordered+' pcs</b></div></div></div>':'<div class="sec"><div class="label">Pemesan ('+p.ordered+' pcs)</div><div class="list">'+who+'</div></div>')+
     (tu?'<div class="hint">Pesanan bertambah. Sudah dibeli '+i.boughtQty+' pcs, pesanan sekarang '+p.ordered+' pcs, jadi masih kurang '+p.wait+' pcs. Jumlah di bawah sudah diisi total yang harus dibeli.</div>':(p.wait>0?'<div class="hint">'+p.wait+' pcs pesanan tidak kebagian karena stok terbatas ('+(i.stok===''?'-':i.stok)+' pcs).</div>':''))+
     '<div class="field"><span>Jumlah yang dibeli</span>'+stepper('bq-'+i.id,qty,0)+'</div>'+
     '<label class="field"><span>Harga di toko ('+esc(t.mata)+' per pcs)</span><input id="ba-'+i.id+'" type="text" data-money="d" inputmode="decimal" autocomplete="off" value="'+esc(fmtIn(price))+'"><small>Harga di daftar: '+esc(t.mata)+' '+nf(i.harga)+'. Ubah kalau harga di toko berbeda.</small></label></div>'+
@@ -2218,6 +2252,7 @@ function render(){
       var ae=document.activeElement;if(ae&&ae.closest&&ae.closest('.sheet')&&(ae.id||ae.name))fk=ae.id?'#'+ae.id:'[name='+ae.name+']'}}
   var fab=!m&&C&&UI.tab==='barang'?'<button class="fab" data-act="item-new" aria-label="Tambah barang">'+ico('plus')+'Barang</button>':!m&&C&&UI.tab==='tagihan'?'<button class="fab" data-act="line-new" aria-label="Tambah pesanan">'+ico('plus')+'Pesanan</button>':'';
   app.innerHTML=viewHeader()+'<div class="shell">'+(C?viewNav(C):'<span></span>')+'<main>'+viewBanner()+body+'</main></div>'+fab+modal;
+  if(typeof wakeSync==='function')wakeSync();
   window.scrollTo(0,y);UI.just=null;
   if(keep){Object.keys(keep).forEach(function(k){var e=document.querySelector('.sheet '+k);if(e&&e.value!==keep[k])e.value=keep[k]});if(fk){var fe=document.querySelector('.sheet '+fk);if(fe)try{fe.focus()}catch(x){}}}
   if(sy){var nb=document.querySelector('.sheet-bd');if(nb)nb.scrollTop=sy}
