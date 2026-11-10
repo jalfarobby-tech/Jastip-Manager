@@ -709,6 +709,35 @@ details.gain-more[open]>summary{margin-bottom:6px}
 
 .sh,h2.sh{font-family:var(--f-body)!important;font-weight:700;font-size:1.05rem;letter-spacing:-.005em;margin:22px 0 10px}
 .lux-h{font-size:clamp(1.5rem,6.4vw,2rem);margin:14px 0 14px}
+
+/* belanja: lebih ringkas */
+.utabs .cn{font-style:normal;font-size:.75rem;font-weight:700;background:var(--sunken);color:var(--muted);border-radius:99px;padding:1px 7px;margin-left:4px}
+.utabs button[aria-pressed="true"] .cn{background:var(--blue-soft);color:var(--blue)}
+.area{margin:10px -16px 0;padding:6px 16px;background:transparent;border-top:1px solid var(--rule);font-size:.76rem;color:var(--muted)}
+.area:first-child{border-top:0;margin-top:0}
+details.doneblk{border-top:1px solid var(--rule);margin:0 -16px}
+details.doneblk>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:0 16px;font-weight:700;font-size:.9rem;color:var(--muted)}
+details.doneblk>summary::-webkit-details-marker{display:none}
+details.doneblk>summary::after{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-4px 4px 0 10px;transition:transform .2s}
+details.doneblk[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+details.doneblk>summary b{margin-left:auto;font-size:.8rem}
+.srow.done .main{padding-top:9px;padding-bottom:9px}
+.srow.done .who{display:none}
+.srow.done .main .qty{font-size:.95rem}
+/* navigasi bawah */
+@media(max-width:899px){
+nav.tabs{background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid color-mix(in srgb,var(--rule) 70%,transparent);box-shadow:0 -6px 20px rgba(10,16,40,.06);padding-top:4px}
+nav.tabs .in{max-width:520px}
+nav.tabs button{min-height:62px;gap:3px;font-size:.74rem;letter-spacing:.01em;padding:6px 0 4px;-webkit-tap-highlight-color:transparent}
+nav.tabs button svg{width:22px;height:22px;padding:5px 20px;border-radius:99px}
+nav.tabs button[aria-current="true"] svg{background:color-mix(in srgb,var(--blue) 15%,transparent);color:var(--blue)}
+nav.tabs button[aria-current="true"]{color:var(--blue)}
+nav.tabs .dot{top:3px;left:calc(50% + 6px);min-width:17px;line-height:17px;font-size:.68rem;box-shadow:0 0 0 2px var(--surface)}
+nav.tabs button:active svg{transform:scale(.92)}
+}
+
+details.doneblk .srow,details.doneblk .area{margin-left:16px;margin-right:16px}
+details.doneblk .area{padding-left:0;padding-right:0}
 </style>
 </head>
 <body>
@@ -1841,7 +1870,7 @@ function viewBelanja(C){
   var h='<div class="page">'+phero(C.t.nama,head,T.codes?pct:null,[[pendL.length,'belum dibeli'],[pcs,'pcs perlu dibeli'],[Object.keys(tk).length,'toko']],
       '<button class="btn" data-act="copy-shop">Salin daftar</button>'+(T.codes>0&&!pendL.length&&S.role!=='pembeli'?'<button class="btn primary" data-act="tab" data-tab="tagihan">Buka pelanggan</button>':''))+
     (wn.length?'<button class="waitbar" data-act="stage" data-f="bayar"><span class="wb"><b>'+wn.length+' pelanggan belum bayar</b><span>Pesanannya belum masuk daftar ini. Ketuk untuk melihat siapa saja.</span></span>'+ico('chev')+'</button>':'');
-  h+='<div class="utabs" role="group" aria-label="Filter"><button data-act="filter" data-f="semua" aria-pressed="'+(f==='semua')+'">Semua</button><button data-act="filter" data-f="belum" aria-pressed="'+(f==='belum')+'">Belum dibeli</button><button data-act="filter" data-f="selesai" aria-pressed="'+(f==='selesai')+'">Selesai</button></div>';
+  h+='<div class="utabs" role="group" aria-label="Filter"><button data-act="filter" data-f="semua" aria-pressed="'+(f==='semua')+'">Semua</button><button data-act="filter" data-f="belum" aria-pressed="'+(f==='belum')+'">Belum dibeli'+(pendL.length?' <i class="cn">'+pendL.length+'</i>':'')+'</button><button data-act="filter" data-f="selesai" aria-pressed="'+(f==='selesai')+'">Selesai'+(doneN?' <i class="cn">'+doneN+'</i>':'')+'</button></div>';
   var groups={};
   C.items.forEach(function(i){if(C.per[i.id].ordered<=0)return;var k=tokoOf(i)||'Tanpa toko';(groups[k]=groups[k]||[]).push(i)});
   var keys=Object.keys(groups).sort(natCmp),any=false,gh='';
@@ -1855,11 +1884,15 @@ function viewBelanja(C){
     var arr=groups[k],done=arr.filter(function(i){return !pending(C,i)}).length;
     var vis=arr.filter(function(i){return f==='semua'||(f==='belum'?pending(C,i):!pending(C,i))});
     if(!vis.length)return;any=true;
-    var byA={};vis.forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
-    var as=Object.keys(byA).sort(areaCmp),multi=as.length>1||as[0]!=='';
-    var body=as.map(function(a){
-      var ar=byA[a].sort(function(x,y){return ((!pending(C,x))-(!pending(C,y)))||natCmp(x.kode,y.kode)}),left=ar.filter(function(i){return pending(C,i)}).length;
-      return (multi?'<div class="area">'+esc(a||'Tanpa lantai/area')+'<span>'+(left?left+' lagi':'selesai')+'</span></div>':'')+ar.map(function(i){return shopRow(C,i)}).join('')}).join('');
+    function block(list){
+      var byA={};list.forEach(function(i){var a=areaOf(i);(byA[a]=byA[a]||[]).push(i)});
+      var as=Object.keys(byA).sort(areaCmp),multi=as.length>1||as[0]!=='';
+      return as.map(function(a){
+        var ar=byA[a].sort(function(x,y){return natCmp(x.kode,y.kode)});
+        return (multi?'<div class="area">'+esc(a||'Tanpa lantai/area')+'<span>'+ar.length+' barang</span></div>':'')+ar.map(function(i){return shopRow(C,i)}).join('')}).join('')}
+    var pv=vis.filter(function(i){return pending(C,i)}),dv=vis.filter(function(i){return !pending(C,i)});
+    var body=block(pv);
+    if(dv.length)body+=(f==='semua'?'<details class="doneblk"><summary><span>Sudah dibeli</span><b class="num">'+dv.length+'</b></summary>'+block(dv)+'</details>':block(dv));
     gh+='<div class="sec"><div class="label"><span>'+esc(k)+'</span><span class="num">'+done+' / '+arr.length+'</span></div><div class="list">'+body+'</div></div>';
   });
   if(gh)h+='<div class="groups">'+gh+'</div>';
