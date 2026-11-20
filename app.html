@@ -20,8 +20,8 @@
 /* Konsep: nota toko. Kertas putih, tinta biru bolpen, kode barang ditandai stabilo kuning, cap untuk status.
    Satu hal yang berani: nota pelanggan dan capnya. Sisanya tenang dan jelas. */
 :root{
-  --paper:#eef0f6; --surface:#ffffff; --sunken:#f1f3f9; --rule:#e1e5f0; --rule-strong:#aab3cb;
-  --ink:#121826; --muted:#586179;
+  --paper:#f3f0e8; --surface:#fffdf9; --sunken:#f0ece2; --rule:#e3ddd0; --rule-strong:#b3ab9a;
+  --ink:#17171c; --muted:#5b584f;
   --blue:#2740d8; --blue-ink:#ffffff; --blue-soft:#e8ecff; --blue-deep:#1a2db0;
   --hi:#ffe14d; --hi-ink:#2a2300;
   --red:#cf2f29; --red-soft:#fdecea; --green:#0f7a3d; --green-soft:#e5f5ec; --amber:#97580a; --amber-soft:#fff3dc;
@@ -362,7 +362,7 @@ button,.btn,.chk,.row,.icon-btn,select,summary{touch-action:manipulation;-webkit
 .seg4{display:grid;grid-template-columns:repeat(4,1fr)}
 
 /* ===== Gaya dasbor (mengikuti referensi) ===== */
-:root{--paper:#f5f6fb;--navy1:#1b2a6b;--navy2:#2f4aa8;--c-orange:#ee6a35;--c-teal:#1fb39a;--c-purple:#7a4de0;--c-green:#1ca85a;--c-blue:#3b6ef5;--c-amber:#f0a50f;--c-cyan:#16b2d6}
+:root{--navy1:#1b2a6b;--navy2:#2f4aa8;--c-orange:#ee6a35;--c-teal:#1fb39a;--c-purple:#7a4de0;--c-green:#1ca85a;--c-blue:#3b6ef5;--c-amber:#f0a50f;--c-cyan:#16b2d6}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#0b0e15}}
 body,body::before{background:var(--surface)}
 body::before{background:var(--surface)!important}
@@ -418,8 +418,8 @@ button.pr-card{cursor:pointer}
 
 /* ===== Tema butik: safir pekat, emas stabilo, serif ===== */
 :root{--serif:'Instrument Serif',Georgia,'Times New Roman',serif}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--paper:#f3f4f9;--ink:#0b1030;--muted:#586080;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e1e4ef;--gold:#f0bf2a}}
-:root[data-theme="light"]{--paper:#f3f4f9;--ink:#0b1030;--muted:#586080;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e1e4ef;--gold:#f0bf2a}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--paper:#f3f0e8;--ink:#17171c;--muted:#5b584f;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e3ddd0;--gold:#f0bf2a}}
+:root[data-theme="light"]{--paper:#f3f0e8;--ink:#17171c;--muted:#5b584f;--blue:#1b2a9a;--blue-soft:#e6e9fb;--bar:#0d1544;--rule:#e3ddd0;--gold:#f0bf2a}
 body{background:var(--paper)}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]) body::before{background:var(--surface)!important}}
 h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:0}
@@ -794,6 +794,27 @@ h1,h2,h3,.sh,.nota .who,.nota .big,.profit .v,.pr-card .pi,.lux-st dd,.groups .s
 .toast button{margin-left:6px}
 @media(min-width:900px){.toast{bottom:32px}}
 .cgrid.kg{grid-template-columns:minmax(0,1fr)!important}
+
+/* ===== Perapian desain: satu warna aksi, hero datar, tanpa lingkaran angka ===== */
+svg.i{stroke-width:1.75}
+.lux:not(.phero){color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:16px;box-shadow:none}
+.lux:not(.phero)::after{display:none}
+.lux:not(.phero) .lux-top{opacity:1;color:var(--muted)}
+.lux:not(.phero) .lux-h{color:var(--ink)}
+.lux:not(.phero) .lux-edit{color:var(--ink);background:var(--surface);border:1.5px solid var(--rule-strong)}
+.lux:not(.phero) .lux-bar{background:var(--sunken)}
+.lux:not(.phero) .lux-bar i{background:var(--hi)}
+.lux:not(.phero) .lux-st{border-top:1px solid var(--rule)}
+.lux:not(.phero) .lux-st>div+div{border-left:1px solid var(--rule)}
+.lux:not(.phero) .lux-st dt,.lux:not(.phero) .lux-meta{opacity:1;color:var(--muted)}
+.row .lead-n{width:auto;min-width:24px;height:auto;background:none!important;border-radius:0;font-size:1.15rem;justify-content:center}
+.pacts .btn.primary,.fab{background:#2433b5;border-color:#2433b5;color:#fff}
+.pacts .btn.primary .i,.fab .i{color:#fff}
+.fab{box-shadow:0 6px 16px -8px rgba(0,0,0,.45)}
+.av,.ccard .av{border-radius:10px;background:var(--sunken)!important;color:var(--ink)!important}
+.ccard .av{width:42px;height:42px}
+.pr-card .pi,.pr-card .pi.bad,.pr-card .pi.warn,.pr-card .pi.ok{width:6px;height:36px;border-radius:3px;font-size:0;color:transparent;background:var(--ink)}
+.pr-card .pi.bad{background:var(--red)}.pr-card .pi.warn{background:var(--amber)}.pr-card .pi.ok{background:var(--green)}
 </style>
 </head>
 <body>
