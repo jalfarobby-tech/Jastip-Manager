@@ -783,6 +783,17 @@ h1,h2,h3,.sh,.nota .who,.nota .big,.profit .v,.pr-card .pi,.lux-st dd,.groups .s
 .pr-card .pi{font-size:1.1rem}
 .nota .big{font-weight:800}
 @media(min-width:600px) and (max-width:899px){nav.tabs .in{max-width:680px}}
+
+/* rapi: daftar satu kelompok selebar halaman, tombol tanpa glow, toast satu baris */
+.groups:has(>.sec:only-child){grid-template-columns:minmax(0,1fr)}
+.cgrid:has(>*:only-child){grid-template-columns:minmax(0,1fr)}
+.btn.primary{box-shadow:none;background:#2433b5;border-color:#2433b5;color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.fab{box-shadow:0 6px 16px -8px rgba(0,0,0,.45)}
+.toast{display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;width:max-content;max-width:calc(100vw - 32px);box-shadow:0 10px 28px -10px rgba(0,0,0,.5);bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.toast button{margin-left:6px}
+@media(min-width:900px){.toast{bottom:32px}}
+.cgrid.kg{grid-template-columns:minmax(0,1fr)!important}
 </style>
 </head>
 <body>
@@ -2228,7 +2239,7 @@ function viewKirim(C){
   var list=f==='sent'?sent:f==='tunggu'?tunggu:proses.slice().sort(function(a,b){return P.indexOf(a.stage)-P.indexOf(b.stage)});
   if(!list.length)return h+'<div class="empty">'+(f==='proses'?'Tidak ada yang perlu diproses sekarang.':f==='sent'?'Belum ada pesanan yang terkirim.':'Tidak ada pesanan yang menunggu.')+'</div></div>';
   var last='';
-  h+='<div class="cgrid">'+list.map(function(c){
+  h+='<div class="cgrid kg">'+list.map(function(c){
     var g=f==='proses'?stageLabel(c.stage):'',lab=g&&g!==last?'<div class="label" style="grid-column:1/-1;margin:8px 0 0">'+esc(g)+'</div>':'';last=g||last;
     var sub=(c.rows.length+c.hold.length)+' barang'+(c.resi?' · '+esc(c.resi):'')+(c.stage==='bayar'?' · menunggu bayar':c.stage==='belanja'?' · barang belum semua dibeli':'');
     var open=(c.stage==='bayar'||c.stage==='belanja')?'cust-open':'ship-open';
