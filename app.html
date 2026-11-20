@@ -760,6 +760,29 @@ header.top .menu-btn:active{background:var(--sunken)}
 .cn2{font-size:.8rem;font-weight:700;background:var(--sunken);color:var(--muted);border-radius:99px;padding:2px 9px;margin-left:6px;vertical-align:middle}
 .morerow{color:var(--accent);font-weight:700;min-height:48px}
 @media(max-width:899px){header.top .brand .bn{display:none}}
+
+/* desktop dan tablet: header selaras dengan isi */
+@media(min-width:900px){
+.top{padding:8px 0}
+.top .in{max-width:1320px;padding:0 24px;gap:14px}
+.top .in .brand{width:210px;flex:none}
+.top .in select,.top .in .tripsel{max-width:380px}
+}
+
+/* satu keluarga huruf: sans untuk semua, tanpa serif */
+.lux-h,.lux-h .num{font-family:var(--f-body)!important;font-weight:700;letter-spacing:-.022em;line-height:1.15;font-size:clamp(1.55rem,6vw,1.95rem);max-width:18em}
+.row .lead-n{font-family:var(--f-body);font-weight:700}
+.lux-st dd,.lux-st dd .num{font-family:var(--f-body)}
+.gain-v{font-size:clamp(2rem,9vw,2.6rem);color:var(--ink)}
+@media(min-width:900px){.lux-h{font-size:2.15rem}.gain-v{font-size:2.6rem}}
+nav.tabs .deskout{color:var(--muted)}
+nav.tabs .deskout:hover{color:var(--red)}
+
+h1,h2,h3,.sh,.nota .who,.nota .big,.profit .v,.pr-card .pi,.lux-st dd,.groups .sec>.label,.modal h2,.sheet h2{font-family:var(--f-body)!important;font-weight:700;letter-spacing:-.012em}
+.auth-h{font-family:var(--serif)!important;font-weight:400!important;letter-spacing:0!important}
+.pr-card .pi{font-size:1.1rem}
+.nota .big{font-weight:800}
+@media(min-width:600px) and (max-width:899px){nav.tabs .in{max-width:680px}}
 </style>
 </head>
 <body>
