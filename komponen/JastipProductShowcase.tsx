@@ -306,8 +306,9 @@ function Phone({ active, step }: { active: number; step: number }) {
   const pt = (el: HTMLElement | null) => {
     const a = screenRef.current?.getBoundingClientRect()
     const b = el?.getBoundingClientRect()
-    if (!a || !b) return null
-    return { x: b.left - a.left + b.width * 0.62, y: b.top - a.top + b.height * 0.58 }
+    if (!a || !b || !screenRef.current) return null
+    const k = a.width / screenRef.current.offsetWidth || 1 // kompensasi skala di layar kecil
+    return { x: (b.left - a.left + b.width * 0.62) / k, y: (b.top - a.top + b.height * 0.58) / k }
   }
   const go = (p: { x: number; y: number } | null) => {
     if (!p) return
@@ -456,7 +457,7 @@ export default function JastipProductShowcase({ className = '', bare = false, th
       className={`w-full text-[var(--ink)] ${bare ? '' : 'bg-[var(--paper)] px-5 py-16 md:px-10 md:py-24'} ${className}`}
       aria-label="Demo Jastip Manager"
     >
-      <div className="mx-auto grid max-w-[1100px] items-center gap-12 lg:grid-cols-[1fr_auto] lg:gap-20">
+      <div className="mx-auto grid max-w-[1100px] items-center gap-6 lg:grid-cols-[1fr_auto] lg:gap-20">
         {/* kiri: teks */}
         <div>
           {!bare && (
@@ -476,11 +477,11 @@ export default function JastipProductShowcase({ className = '', bare = false, th
                   role="tab"
                   aria-selected={on}
                   onClick={() => pick(i)}
-                  className={`group w-full rounded-xl px-1 py-4 text-left transition-opacity duration-300 ${on ? 'opacity-100' : 'opacity-55 hover:opacity-90'}`}
+                  className={`group w-full rounded-xl px-1 py-3 text-left lg:py-4 transition-opacity duration-300 ${on ? 'opacity-100' : 'opacity-55 hover:opacity-90'}`}
                 >
                   <span className="flex items-baseline gap-3">
                     <span className="text-[13px] font-bold tabular-nums text-[var(--muted)]">0{i + 1}</span>
-                    <span className="text-[1.35rem] font-extrabold tracking-[-0.015em]">{s.title}</span>
+                    <span className="text-[1.15rem] font-extrabold tracking-[-0.015em] lg:text-[1.35rem]">{s.title}</span>
                   </span>
                   <AnimatePresence initial={false}>
                     {on && (
@@ -496,7 +497,7 @@ export default function JastipProductShowcase({ className = '', bare = false, th
                       </motion.span>
                     )}
                   </AnimatePresence>
-                  <span className="mt-4 block h-[2px] overflow-hidden rounded-full bg-[var(--rule)]">
+                  <span className="mt-3 block h-[2px] lg:mt-4 overflow-hidden rounded-full bg-[var(--rule)]">
                     {on && inView && !reduce ? (
                       <motion.span key={`${st.k}-${st.a}`} className="block h-full origin-left bg-[var(--blue)]" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: s.dur / 1000, ease: 'linear' }} />
                     ) : (
@@ -510,8 +511,10 @@ export default function JastipProductShowcase({ className = '', bare = false, th
         </div>
 
         {/* kanan: HP */}
-        <div className="flex justify-center lg:justify-end">
-          <Phone active={st.a} step={st.s} />
+        <div className="order-first flex justify-center max-lg:-mb-[70px] lg:order-none lg:justify-end">
+          <div className="max-lg:origin-top max-lg:scale-[.9]">
+            <Phone active={st.a} step={st.s} />
+          </div>
         </div>
       </div>
     </section>
