@@ -5,8 +5,8 @@
  *
  * Kebutuhan: react >= 18, framer-motion >= 11 (import dari 'framer-motion'), tailwindcss >= 3.
  * Tidak perlu tailwind.config khusus: semua warna asli aplikasi dipasang sebagai
- * variabel CSS di elemen akar komponen ini (lihat TOKEN di bawah, nilainya diambil
- * dari :root aplikasi). Pastikan file ini masuk ke `content` Tailwind kamu.
+ * variabel CSS di elemen akar komponen ini (LIGHT dan DARK di bawah, nilainya diambil
+ * dari :root aplikasi). Props: bare (tanpa judul/latar), theme ('light' | 'dark' | 'auto'). Pastikan file ini masuk ke `content` Tailwind kamu.
  *
  * Huruf asli aplikasi: Plus Jakarta Sans. Muat sekali di <head> situsmu:
  *   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,25 +17,25 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type R
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
 
 /* ---------- Warna & huruf asli Jastip Manager (mode terang) ---------- */
-const TOKEN = {
-  '--paper': '#f3f0e8',
-  '--surface': '#fffdf9',
-  '--sunken': '#f0ece2',
-  '--rule': '#e3ddd0',
-  '--rule-strong': '#b3ab9a',
-  '--ink': '#17171c',
-  '--muted': '#5b584f',
-  '--blue': '#2740d8',
-  '--blue-deep': '#2433b5',
-  '--blue-soft': '#e8ecff',
-  '--hi': '#ffe14d',
-  '--hi-ink': '#2a2300',
-  '--red': '#cf2f29',
-  '--red-soft': '#fdecea',
-  '--green': '#0f7a3d',
-  '--green-soft': '#e5f5ec',
-  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-} as CSSProperties
+const FONT = "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+const LIGHT = {
+  '--paper': '#f3f0e8', '--surface': '#fffdf9', '--sunken': '#f0ece2', '--rule': '#e3ddd0', '--rule-strong': '#b3ab9a',
+  '--ink': '#17171c', '--muted': '#5b584f',
+  '--blue': '#2740d8', '--blue-deep': '#2433b5', '--blue-soft': '#e8ecff',
+  '--hi': '#ffe14d', '--hi-ink': '#2a2300',
+  '--red': '#cf2f29', '--red-soft': '#fdecea', '--green': '#0f7a3d', '--green-soft': '#e5f5ec', '--amber': '#97580a',
+  '--bezel': '#17171c', '--flash': '#e8ecff',
+}
+/* Mode gelap = :root gelap aplikasi */
+const DARK = {
+  '--paper': '#0b0e15', '--surface': '#141824', '--sunken': '#1b2030', '--rule': '#262c3d', '--rule-strong': '#5a647d',
+  '--ink': '#eef1f9', '--muted': '#a3acc0',
+  '--blue': '#93a5ff', '--blue-deep': '#2433b5', '--blue-soft': '#1d2548',
+  '--hi': '#ffe14d', '--hi-ink': '#2a2300',
+  '--red': '#ff8d85', '--red-soft': '#3a1c1b', '--green': '#62d18f', '--green-soft': '#16301f', '--amber': '#f2b95b',
+  '--bezel': '#05070b', '--flash': '#1d2548',
+}
+const tokens = (dark: boolean) => ({ ...(dark ? DARK : LIGHT), fontFamily: FONT }) as CSSProperties
 
 /* Satu kurva gerak untuk semuanya */
 const SPRING = { type: 'spring', stiffness: 120, damping: 20 } as const
@@ -120,7 +120,7 @@ function CustomerRow({ initial, name, codes, total, paid, fresh }: { initial: st
     <motion.li
       layout
       initial={fresh ? { opacity: 0, y: -28, scale: 0.96 } : false}
-      animate={fresh ? { opacity: 1, y: 0, scale: 1, backgroundColor: ['#e8ecff', '#fffdf9'] } : undefined}
+      animate={fresh ? { opacity: 1, y: 0, scale: 1, backgroundColor: ['var(--flash)', 'var(--surface)'] } : undefined}
       transition={fresh ? { ...SPRING, backgroundColor: { duration: 1.6, delay: 0.35, ease: 'easeOut' } } : SPRING}
       className="flex items-center gap-3 border-b border-[var(--rule)] px-[14px] py-[12px] last:border-b-0"
     >
@@ -172,7 +172,7 @@ function PelangganScreen({ added, btnRef, pressed }: { added: boolean; btnRef: R
 }
 
 function WorkRow({ tone, title, sub, children }: { tone: 'red' | 'amber'; title: string; sub: string; children: ReactNode }) {
-  const bar = tone === 'red' ? 'bg-[var(--red)]' : 'bg-[#97580a]'
+  const bar = tone === 'red' ? 'bg-[var(--red)]' : 'bg-[var(--amber)]'
   return (
     <div className="flex items-center gap-3 border-b border-[var(--rule)] px-[14px] py-[12px] last:border-b-0">
       <span className={`h-9 w-[5px] shrink-0 rounded-[3px] ${bar}`} />
@@ -195,7 +195,7 @@ function BerandaScreen({ step, scene, tagihRef }: { step: number; scene: number;
     <motion.div
       className="px-[14px] pt-[14px]"
       style={{ transformOrigin: '50% 30%' }}
-      animate={{ y: s2 && step >= 1 ? -176 : 0, scale: s2 && step >= 1 ? 1.05 : 1 }}
+      animate={{ y: s2 && step >= 1 ? -208 : 0, scale: s2 && step >= 1 ? 1.05 : 1 }}
       transition={SPRING}
     >
       <h4 className="mb-[10px] text-[15px] font-bold tracking-[-0.012em] text-[var(--ink)]">Perlu dikerjakan</h4>
@@ -287,7 +287,7 @@ function Cursor({ x, y, show, pressed }: { x: ReturnType<typeof useMotionValue<n
         transition={SPRING}
       />
       <svg width="22" height="22" viewBox="0 0 24 24" className="relative drop-shadow-[0_2px_3px_rgba(0,0,0,.35)]" aria-hidden>
-        <path d="M5 3l14 7.2-6 1.8-2.2 6.2z" fill="#17171c" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M5 3l14 7.2-6 1.8-2.2 6.2z" fill="var(--ink)" stroke="var(--surface)" strokeWidth="1.6" strokeLinejoin="round" />
       </svg>
     </motion.div>
   )
@@ -348,10 +348,10 @@ function Phone({ active, step }: { active: number; step: number }) {
   const screen = active === 0 ? 'cust' : 'home'
 
   return (
-    <div className="relative mx-auto h-[700px] w-[340px] rounded-[48px] bg-[#17171c] p-[9px] shadow-[0_44px_80px_-42px_rgba(23,23,28,.5),0_14px_28px_-18px_rgba(23,23,28,.35)]">
+    <div className="relative mx-auto h-[700px] w-[340px] rounded-[48px] bg-[var(--bezel)] p-[9px] ring-1 ring-[var(--rule)] shadow-[0_44px_80px_-42px_rgba(23,23,28,.5),0_14px_28px_-18px_rgba(23,23,28,.35)]">
       <div ref={screenRef} className="relative h-full w-full overflow-hidden rounded-[39px] bg-[var(--paper)]">
         {/* pulau kamera */}
-        <div className="absolute left-1/2 top-[9px] z-40 h-[22px] w-[84px] -translate-x-1/2 rounded-full bg-[#17171c]" />
+        <div className="absolute left-1/2 top-[9px] z-40 h-[22px] w-[84px] -translate-x-1/2 rounded-full bg-[var(--bezel)]" />
         {/* bilah atas */}
         <div className="absolute inset-x-0 top-0 z-20 flex h-[82px] items-end gap-2 border-b border-[var(--rule)] bg-[var(--surface)] px-[12px] pb-[9px]">
           <span className="relative h-[30px] w-[30px] shrink-0 rounded-[9px] bg-[var(--blue)]">
@@ -393,7 +393,7 @@ function Phone({ active, step }: { active: number; step: number }) {
             <motion.div
               key="toast"
               role="status"
-              className="absolute inset-x-0 bottom-[84px] z-30 mx-auto flex w-max items-center gap-2 rounded-[14px] bg-[#17171c] px-4 py-3 text-[13px] font-semibold text-[var(--surface)] shadow-[0_10px_28px_-10px_rgba(0,0,0,.5)]"
+              className="absolute inset-x-0 bottom-[84px] z-30 mx-auto flex w-max items-center gap-2 rounded-[14px] bg-[var(--ink)] px-4 py-3 text-[13px] font-semibold text-[var(--surface)] shadow-[0_10px_28px_-10px_rgba(0,0,0,.5)]"
               initial={{ opacity: 0, y: 18, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10 }}
@@ -414,7 +414,24 @@ function Phone({ active, step }: { active: number; step: number }) {
 }
 
 /* ---------- Komponen utama ---------- */
-export default function JastipProductShowcase({ className = '' }: { className?: string }) {
+type Props = {
+  className?: string
+  /** true = tanpa latar, padding, dan judul besar (untuk disisipkan di halaman yang sudah punya judul sendiri) */
+  bare?: boolean
+  /** 'auto' mengikuti pengaturan terang/gelap perangkat */
+  theme?: 'light' | 'dark' | 'auto'
+}
+
+export default function JastipProductShowcase({ className = '', bare = false, theme = 'light' }: Props) {
+  const [dark, setDark] = useState(theme === 'dark')
+  useEffect(() => {
+    if (theme !== 'auto') return setDark(theme === 'dark')
+    const m = window.matchMedia('(prefers-color-scheme: dark)')
+    const f = () => setDark(m.matches)
+    f()
+    m.addEventListener('change', f)
+    return () => m.removeEventListener('change', f)
+  }, [theme])
   const rootRef = useRef<HTMLDivElement>(null)
   const inView = useInView(rootRef, { amount: 0.35 })
   const reduce = useReducedMotion()
@@ -433,13 +450,22 @@ export default function JastipProductShowcase({ className = '' }: { className?: 
   const pick = (i: number) => setSt((p) => ({ a: i, s: 0, k: p.k + 1 }))
 
   return (
-    <section ref={rootRef} style={TOKEN} className={`w-full bg-[var(--paper)] px-5 py-16 text-[var(--ink)] md:px-10 md:py-24 ${className}`} aria-label="Demo Jastip Manager">
+    <section
+      ref={rootRef}
+      style={tokens(dark)}
+      className={`w-full text-[var(--ink)] ${bare ? '' : 'bg-[var(--paper)] px-5 py-16 md:px-10 md:py-24'} ${className}`}
+      aria-label="Demo Jastip Manager"
+    >
       <div className="mx-auto grid max-w-[1100px] items-center gap-12 lg:grid-cols-[1fr_auto] lg:gap-20">
         {/* kiri: teks */}
         <div>
-          <p className="mb-3 text-[14px] font-bold text-[var(--blue)]">Jastip Manager</p>
-          <h2 className="max-w-[16em] text-[clamp(1.9rem,4.4vw,2.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em]">Dari chat pelanggan sampai untung, tanpa catatan manual.</h2>
-          <div className="mt-9 flex flex-col gap-1" role="tablist" aria-label="Adegan demo">
+          {!bare && (
+            <>
+              <p className="mb-3 text-[14px] font-bold text-[var(--blue)]">Jastip Manager</p>
+              <h2 className="max-w-[16em] text-[clamp(1.9rem,4.4vw,2.9rem)] font-extrabold leading-[1.08] tracking-[-0.025em]">Dari chat pelanggan sampai untung, tanpa catatan manual.</h2>
+            </>
+          )}
+          <div className={`${bare ? '' : 'mt-9'} flex flex-col gap-1`} role="tablist" aria-label="Adegan demo">
             {SCENES.map((s, i) => {
               const on = i === st.a
               const done = i < st.a

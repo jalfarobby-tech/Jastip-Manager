@@ -354,6 +354,7 @@ em,.hero h1 em,.hd h2 em,.final h2 em{font-style:normal}
 .hero .mk-st small,.mk-st small{color:var(--muted)!important}
 :root{--bg:#f3f0e8;--bg2:#ebe6da;--card:#fffdf9;--ink:#17171c;--muted:#5b584f;--rule:#e0d9ca;--blue:#1b2a9a;--soft:#e6e9fb}
 @media(prefers-color-scheme:dark){:root{--bg:#0b0e15;--bg2:#141824;--card:#141824;--ink:#eef1f9;--muted:#a3acc0;--rule:#262c3d;--blue:#93a5ff;--soft:#1d2548}}
+.jpsm{min-height:1100px}@media(min-width:1024px){.jpsm{min-height:760px}}
 </style>
 </head>
 <body>
@@ -384,6 +385,9 @@ em,.hero h1 em,.hd h2 em,.final h2 em{font-style:normal}
 </div>
 <div class="mk-gain pop" style="--d:1s"><small>Perkiraan untung bersih</small><b data-count="2317000" data-pre="Rp">Rp2.317.000</b><span>Margin 28% dari omzet</span></div></div></div></div>
 
+<section id="demo"><div class="wrap"><div class="hd rv"><span class="eye">Lihat cara kerjanya</span><h2>Tiga langkah, <em>tanpa catatan manual.</em></h2><p>Demo singkat yang berjalan sendiri. Klik poin mana saja untuk melihatnya.</p></div>
+<div id="jps-mount" class="jpsm"><noscript><p class="galn">Catat pesanan, pantau untung otomatis, lalu kirim pengingat tagihan lewat WhatsApp.</p></noscript></div></div></section>
+<script>(function(){var m=document.getElementById("jps-mount");if(!m)return;function L(){var s=document.createElement("script");s.src="demo/showcase.js";s.defer=true;document.head.appendChild(s)}if(!("IntersectionObserver"in window)){L();return}var o=new IntersectionObserver(function(e){if(e[0].isIntersecting){o.disconnect();L()}},{rootMargin:"500px"});o.observe(m)})();</script>
 <section id="lihat"><div class="wrap"><div class="hd rv"><span class="eye">Tampilan aplikasi</span><h2>Seperti ini <em>rasanya</em> memakainya.</h2><p>Cuplikan layar asli dari aplikasinya, di HP.</p></div>
 <div class="gal">
 <figure class="rv"><div class="ph"><img src="shots/beranda.webp" width="390" height="844" loading="lazy" decoding="async" alt="Beranda Jastip Manager: ringkasan trip, jumlah pelanggan, barang yang belum dibeli, dan daftar yang perlu dikerjakan"></div><figcaption>Beranda<small>Ringkasan trip sekilas</small></figcaption></figure>
